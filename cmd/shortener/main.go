@@ -39,7 +39,7 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Location", fullURL)
 		http.Redirect(w, r, fullURL, http.StatusTemporaryRedirect)
 	} else {
-		http.NotFound(w, r)
+		http.Error(w, "400 Bad Request", http.StatusBadRequest)
 	}
 }
 
@@ -47,15 +47,16 @@ func makeShortURLHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
 	shortId, err := app.GetShortId(string(body))
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
 	w.Header().Add("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(baseURL + shortId))
 }
