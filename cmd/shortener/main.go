@@ -34,8 +34,8 @@ func mainHook(w http.ResponseWriter, r *http.Request) {
 }
 
 func redirectHandler(w http.ResponseWriter, r *http.Request) {
-	shortId := r.URL.Path[1:] // убирает слеш (возможна ошибка, лучше переписать через rune)
-	if fullURL, ok := app.GetFullURL(shortId); ok {
+	shortID := r.URL.Path[1:] // убирает слеш (возможна ошибка, лучше переписать через rune)
+	if fullURL, ok := app.GetFullURL(shortID); ok {
 		w.Header().Add("Location", fullURL)
 		http.Redirect(w, r, fullURL, http.StatusTemporaryRedirect)
 	} else {
@@ -50,7 +50,7 @@ func makeShortURLHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	shortId, err := app.GetShortId(string(body))
+	shortID, err := app.GetShortID(string(body))
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -58,5 +58,5 @@ func makeShortURLHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Add("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(baseURL + shortId))
+	w.Write([]byte(baseURL + shortID))
 }

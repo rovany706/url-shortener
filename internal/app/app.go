@@ -15,21 +15,21 @@ func init() {
 }
 
 // Метод GetFullURL возвращает полную ссылку по короткому id и флаг успеха оперции.
-func GetFullURL(shortId string) (fullURL string, ok bool) {
-	fullURL, ok = shortURLMap[shortId]
+func GetFullURL(shortID string) (fullURL string, ok bool) {
+	fullURL, ok = shortURLMap[shortID]
 	return fullURL, ok
 }
 
-// Метод GetShortId возвращает первые 4 байта sha1-хеша ссылки в виде строки.
-func GetShortId(fullURL string) (shortId string, err error) {
+// Метод GetShortID возвращает первые 4 байта sha1-хеша ссылки в виде строки.
+func GetShortID(fullURL string) (shortID string, err error) {
 	if _, err = url.ParseRequestURI(fullURL); err != nil {
 		return "", err
 	}
 
 	hash := sha1.Sum([]byte(fullURL))
 	shortHash := hash[:shortHashByteCount]
-	shortId = fmt.Sprintf("%x", shortHash)
-	shortURLMap[shortId] = fullURL
+	shortID = fmt.Sprintf("%x", shortHash)
+	shortURLMap[shortID] = fullURL
 
-	return shortId, err
+	return shortID, err
 }
