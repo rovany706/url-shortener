@@ -57,6 +57,7 @@ func TestRedirectHandler(t *testing.T) {
 			RedirectHandler(&app, w, request)
 
 			result := w.Result()
+			defer result.Body.Close()
 
 			assert.Equal(t, tt.want.code, result.StatusCode)
 			assert.Equal(t, tt.want.location, result.Header.Get("Location"))
@@ -168,6 +169,7 @@ func TestMainHook(t *testing.T) {
 			MainHook(&app)(w, request)
 
 			response := w.Result()
+			defer response.Body.Close()
 
 			assert.Equal(t, tt.expectedCode, response.StatusCode)
 		})
