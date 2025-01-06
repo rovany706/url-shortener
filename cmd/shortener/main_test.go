@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/rovany706/url-shortener/internal/app"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,13 +21,15 @@ func TestRedirectHandler(t *testing.T) {
 	}
 	tests := []struct {
 		name        string
+		requestID   string
 		request     string
 		shortURLMap map[string]string
 		want        want
 	}{
 		{
-			name:    "redirect test",
-			request: "/id1",
+			name:      "redirect test",
+			requestID: "id1",
+			request:   "/id1",
 			shortURLMap: map[string]string{
 				"id1": "http://example.com/",
 			},
@@ -35,8 +39,9 @@ func TestRedirectHandler(t *testing.T) {
 			},
 		},
 		{
-			name:    "error test",
-			request: "/id2",
+			name:      "error test",
+			requestID: "id2",
+			request:   "/id2",
 			shortURLMap: map[string]string{
 				"id1": "http://example.com/",
 			},
@@ -54,7 +59,12 @@ func TestRedirectHandler(t *testing.T) {
 			}
 			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
 			w := httptest.NewRecorder()
-			RedirectHandler(&app, w, request)
+			// fix chi.URLParams (https://github.com/go-chi/chi/issues/76#issuecomment-370145140)
+			rctx := chi.NewRouteContext()
+			rctx.URLParams.Add("id", tt.requestID)
+			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
+
+			RedirectHandler(&app)(w, request)
 
 			result := w.Result()
 			defer result.Body.Close()
@@ -102,7 +112,7 @@ func TestMakeShortURLHandler(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tt.body))
 			w := httptest.NewRecorder()
 
-			MakeShortURLHandler(&app, w, request)
+			MakeShortURLHandler(&app)(w, request)
 			response := w.Result()
 
 			defer response.Body.Close()
@@ -116,7 +126,27 @@ func TestMakeShortURLHandler(t *testing.T) {
 	}
 }
 
-func TestMainHook(t *testing.T) {
+func testRequest(t *testing.T, ts *httptest.Server, method string, path string, body string) (*http.Response, string) {
+	request, err := http.NewRequest(method, ts.URL+path, strings.NewReader(body))
+	require.NoError(t, err)
+
+	client := ts.Client()
+	// prevent redirects
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+
+	resp, err := client.Do(request)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	return resp, string(respBody)
+}
+
+func TestMainRouter(t *testing.T) {
 	shortURLMap := map[string]string{
 		"id1": "http://example.com/",
 	}
@@ -144,9 +174,9 @@ func TestMainHook(t *testing.T) {
 		},
 		{
 			name:         "PUT test",
-			request:      "/",
+			request:      "/id1",
 			method:       http.MethodPut,
-			body:         "",
+			body:         "123",
 			expectedCode: http.StatusMethodNotAllowed,
 		},
 		{
@@ -160,16 +190,14 @@ func TestMainHook(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+
 			app := app.URLShortenerApp{
 				ShortURLMap: shortURLMap,
 			}
+			r := MainRouter(&app)
+			ts := httptest.NewServer(r)
 
-			request := httptest.NewRequest(tt.method, tt.request, strings.NewReader(tt.body))
-			w := httptest.NewRecorder()
-			MainHook(&app)(w, request)
-
-			response := w.Result()
-			defer response.Body.Close()
+			response, _ := testRequest(t, ts, tt.method, tt.request, tt.body)
 
 			assert.Equal(t, tt.expectedCode, response.StatusCode)
 		})
