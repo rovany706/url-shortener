@@ -136,14 +136,13 @@ func testRequest(t *testing.T, ts *httptest.Server, method string, path string, 
 		return http.ErrUseLastResponse
 	}
 
-	resp, err := client.Do(request)
-	require.NoError(t, err)
-	defer resp.Body.Close()
-
-	respBody, err := io.ReadAll(resp.Body)
+	response, err := client.Do(request)
 	require.NoError(t, err)
 
-	return resp, string(respBody)
+	responseBody, err := io.ReadAll(response.Body)
+	require.NoError(t, err)
+
+	return response, string(responseBody)
 }
 
 func TestMainRouter(t *testing.T) {
@@ -196,8 +195,10 @@ func TestMainRouter(t *testing.T) {
 			}
 			r := MainRouter(&app)
 			ts := httptest.NewServer(r)
+			defer ts.Close()
 
 			response, _ := testRequest(t, ts, tt.method, tt.request, tt.body)
+			defer response.Body.Close()
 
 			assert.Equal(t, tt.expectedCode, response.StatusCode)
 		})
