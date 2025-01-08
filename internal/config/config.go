@@ -2,6 +2,7 @@ package config
 
 import (
 	"flag"
+	"log"
 )
 
 type AppConfig struct {
@@ -25,6 +26,8 @@ func ParseArgs(programName string, args []string) (appConfig *AppConfig, err err
 	if err != nil {
 		return nil, err
 	}
+
+	log.Printf("Parsed app config: %+v\n", appConfig)
 
 	return appConfig, nil
 }
