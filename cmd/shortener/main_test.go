@@ -92,7 +92,7 @@ func TestMakeShortURLHandler(t *testing.T) {
 			want: want{
 				statusCode:  http.StatusCreated,
 				contentType: "text/plain; charset=utf-8",
-				body:        BaseURL + "488575e6",
+				body:        "http://localhost:8080/488575e6",
 			},
 		},
 		{
