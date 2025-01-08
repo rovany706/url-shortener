@@ -3,11 +3,13 @@ package config
 import (
 	"flag"
 	"log"
+
+	"github.com/caarlos0/env/v11"
 )
 
 type AppConfig struct {
-	BaseURL       string
-	AppRunAddress string
+	BaseURL       string `env:"BASE_URL"`
+	AppRunAddress string `env:"SERVER_ADDRESS"`
 }
 
 const defaultBaseURL = "http://localhost:8080"
@@ -22,6 +24,12 @@ func ParseArgs(programName string, args []string) (appConfig *AppConfig, err err
 	flags.StringVar(&appConfig.BaseURL, "b", defaultBaseURL, "base URL for short links")
 
 	err = flags.Parse(args)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = env.Parse(appConfig)
 
 	if err != nil {
 		return nil, err
