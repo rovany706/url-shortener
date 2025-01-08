@@ -16,7 +16,7 @@ import (
 )
 
 func TestRedirectHandler(t *testing.T) {
-	appConfig = &config.AppConfig{BaseURL: "http://localhost:8080/", AppRunAddress: ":8080"}
+	appConfig = &config.AppConfig{BaseURL: "http://localhost:8080", AppRunAddress: ":8080"}
 
 	type want struct {
 		code     int
@@ -79,7 +79,7 @@ func TestRedirectHandler(t *testing.T) {
 }
 
 func TestMakeShortURLHandler(t *testing.T) {
-	appConfig = &config.AppConfig{BaseURL: "http://localhost:8080/", AppRunAddress: ":8080"}
+	appConfig = &config.AppConfig{BaseURL: "http://localhost:8080", AppRunAddress: ":8080"}
 
 	type want struct {
 		statusCode  int
@@ -151,7 +151,7 @@ func testRequest(t *testing.T, ts *httptest.Server, method string, path string, 
 }
 
 func TestMainRouter(t *testing.T) {
-	appConfig = &config.AppConfig{BaseURL: "http://localhost:8080/", AppRunAddress: ":8080"}
+	appConfig = &config.AppConfig{BaseURL: "http://localhost:8080", AppRunAddress: ":8080"}
 
 	shortURLMap := map[string]string{
 		"id1": "http://example.com/",

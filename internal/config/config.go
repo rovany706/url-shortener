@@ -10,7 +10,7 @@ type AppConfig struct {
 	AppRunAddress string
 }
 
-const defaultBaseURL = "http://localhost:8080/"
+const defaultBaseURL = "http://localhost:8080"
 const defaultAppRunAddress = ":8080"
 
 // Метод ParseArgs парсит параметры командной строки и возвращает указатель на объект AppConfig с заполненными значениями конфигурации

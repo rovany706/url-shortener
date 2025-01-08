@@ -71,6 +71,6 @@ func MakeShortURLHandler(app *app.URLShortenerApp) func(w http.ResponseWriter, r
 
 		w.Header().Add("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(appConfig.BaseURL + shortID))
+		w.Write([]byte(appConfig.BaseURL + "/" + shortID))
 	}
 }
