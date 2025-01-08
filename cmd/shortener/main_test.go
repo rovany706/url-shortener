@@ -10,11 +10,14 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rovany706/url-shortener/internal/app"
+	"github.com/rovany706/url-shortener/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestRedirectHandler(t *testing.T) {
+	appConfig = &config.AppConfig{BaseURL: "http://localhost:8080/", AppRunAddress: ":8080"}
+
 	type want struct {
 		code     int
 		location string
@@ -76,6 +79,8 @@ func TestRedirectHandler(t *testing.T) {
 }
 
 func TestMakeShortURLHandler(t *testing.T) {
+	appConfig = &config.AppConfig{BaseURL: "http://localhost:8080/", AppRunAddress: ":8080"}
+
 	type want struct {
 		statusCode  int
 		contentType string
@@ -146,6 +151,8 @@ func testRequest(t *testing.T, ts *httptest.Server, method string, path string, 
 }
 
 func TestMainRouter(t *testing.T) {
+	appConfig = &config.AppConfig{BaseURL: "http://localhost:8080/", AppRunAddress: ":8080"}
+
 	shortURLMap := map[string]string{
 		"id1": "http://example.com/",
 	}
