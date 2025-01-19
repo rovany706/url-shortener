@@ -7,6 +7,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func initializeShortLinkMap(app *URLShortenerApp, initialMap map[string]string) {
+	for k, v := range initialMap {
+		app.ShortURLMap.Store(k, v)
+	}
+}
+
 func TestGetFullURL(t *testing.T) {
 	tests := []struct {
 		name          string
@@ -38,7 +44,7 @@ func TestGetFullURL(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app := URLShortenerApp{}
-			app.ShortURLMap = tt.existingLinks
+			initializeShortLinkMap(&app, tt.existingLinks)
 
 			fullLink, ok := app.GetFullURL(tt.shortID)
 

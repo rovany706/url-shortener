@@ -4,17 +4,28 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"net/url"
+	"sync"
 )
 
 const shortHashByteCount = 4
 
+type URLShortener interface {
+	GetFullURL(shortID string) (fullURL string, ok bool)
+	GetShortID(fullURL string) (shortID string, err error)
+}
+
 type URLShortenerApp struct {
-	ShortURLMap map[string]string
+	ShortURLMap sync.Map
 }
 
 // Метод GetFullURL возвращает полную ссылку по короткому id и флаг успеха операции.
 func (app *URLShortenerApp) GetFullURL(shortID string) (fullURL string, ok bool) {
-	fullURL, ok = app.ShortURLMap[shortID]
+	v, ok := app.ShortURLMap.Load(shortID)
+
+	if ok {
+		fullURL = v.(string)
+	}
+
 	return fullURL, ok
 }
 
@@ -24,14 +35,10 @@ func (app *URLShortenerApp) GetShortID(fullURL string) (shortID string, err erro
 		return "", err
 	}
 
-	if app.ShortURLMap == nil {
-		app.ShortURLMap = map[string]string{}
-	}
-
 	hash := sha1.Sum([]byte(fullURL))
 	shortHash := hash[:shortHashByteCount]
 	shortID = fmt.Sprintf("%x", shortHash)
-	app.ShortURLMap[shortID] = fullURL
+	app.ShortURLMap.Store(shortID, fullURL)
 
 	return shortID, err
 }

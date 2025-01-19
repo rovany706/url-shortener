@@ -18,22 +18,22 @@ func TestParseFlags(t *testing.T) {
 		{
 			"empty args",
 			[]string{programName},
-			AppConfig{BaseURL: defaultBaseURL, AppRunAddress: defaultAppRunAddress},
+			*NewConfig(),
 		},
 		{
 			"only BaseURL",
 			[]string{programName, "-b", "http://test.com/"},
-			AppConfig{BaseURL: "http://test.com/", AppRunAddress: defaultAppRunAddress},
+			*NewConfig(WithBaseURL("http://test.com/")),
 		},
 		{
 			"only AppRunAddress",
 			[]string{programName, "-a", ":8888"},
-			AppConfig{BaseURL: defaultBaseURL, AppRunAddress: ":8888"},
+			*NewConfig(WithAppRunAddress(":8888")),
 		},
 		{
 			"full args",
 			[]string{programName, "-a", ":8888", "-b", "http://test.com/"},
-			AppConfig{BaseURL: "http://test.com/", AppRunAddress: ":8888"},
+			*NewConfig(WithBaseURL("http://test.com/"), WithAppRunAddress(":8888")),
 		},
 	}
 
@@ -43,6 +43,32 @@ func TestParseFlags(t *testing.T) {
 
 			require.NoError(t, err)
 			assert.Equal(t, &tt.wantConfig, actualConfig)
+		})
+	}
+}
+
+func TestParseArgsErr(t *testing.T) {
+	tests := []struct {
+		name    string
+		args    []string
+		wantErr string
+	}{
+		{
+			"invalid BaseURL",
+			[]string{programName, "-b", "http:,,test.com/"},
+			ErrInvalidBaseURL,
+		},
+		{
+			"invalid AppRunAddress",
+			[]string{programName, "-a", "test:onetwothree"},
+			ErrInvalidAppRunAddress,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := ParseArgs(tt.args[0], tt.args[1:])
+			assert.ErrorContains(t, err, tt.wantErr)
 		})
 	}
 }
