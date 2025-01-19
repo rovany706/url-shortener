@@ -79,7 +79,7 @@ func ParseArgs(programName string, args []string) (appConfig *AppConfig, err err
 }
 
 func validateParsedArgs(appConfig *AppConfig) (*AppConfig, error) {
-	if ok := isUrl(appConfig.BaseURL); !ok {
+	if ok := isURL(appConfig.BaseURL); !ok {
 		return nil, errors.New(ErrInvalidBaseURL)
 	}
 
@@ -90,7 +90,7 @@ func validateParsedArgs(appConfig *AppConfig) (*AppConfig, error) {
 	return appConfig, nil
 }
 
-func isUrl(str string) bool {
+func isURL(str string) bool {
 	u, err := url.Parse(str)
 	return err == nil && u.Scheme != "" && u.Host != ""
 }
