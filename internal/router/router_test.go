@@ -11,6 +11,8 @@ import (
 	"github.com/rovany706/url-shortener/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 func testRequest(t *testing.T, ts *httptest.Server, method string, path string, body string) (*http.Response, string) {
@@ -78,9 +80,11 @@ func TestMainRouter(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			obs, logs := observer.New(zap.InfoLevel)
+			logger := zap.New(obs)
 			shortener := app.NewMockURLShortener(shortURLMap)
 
-			r := MainRouter(shortener, appConfig)
+			r := MainRouter(shortener, appConfig, logger)
 			ts := httptest.NewServer(r)
 			defer ts.Close()
 
@@ -88,6 +92,7 @@ func TestMainRouter(t *testing.T) {
 			defer response.Body.Close()
 
 			assert.Equal(t, tt.expectedCode, response.StatusCode)
+			assert.NotEmpty(t, logs.AllUntimed())
 		})
 	}
 }
