@@ -16,6 +16,7 @@ func MainRouter(app app.URLShortener, appConfig *config.AppConfig, logger *zap.L
 	r.Route("/", func(r chi.Router) {
 		r.Get("/{id}", handlers.RedirectHandler(app))
 		r.Post("/", handlers.MakeShortURLHandler(app, appConfig))
+		r.Post("/api/shorten", handlers.MakeShortURLHandlerJSON(app, appConfig, logger))
 	})
 
 	return r

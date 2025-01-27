@@ -49,18 +49,32 @@ func TestMainRouter(t *testing.T) {
 		expectedCode int
 	}{
 		{
-			name:         "POST test",
+			name:         "POST / test",
 			request:      "/",
 			method:       http.MethodPost,
 			body:         "http://example.com/123",
 			expectedCode: http.StatusCreated,
 		},
 		{
-			name:         "GET test",
+			name:         "GET / test",
 			request:      "/id1",
 			method:       http.MethodGet,
 			body:         "",
 			expectedCode: http.StatusTemporaryRedirect,
+		},
+		{
+			name:         "POST /api/shorten test",
+			request:      "/api/shorten",
+			method:       http.MethodPost,
+			body:         "{\"result\":\"http://localhost:8080/0\"}\n",
+			expectedCode: http.StatusCreated,
+		},
+		{
+			name:         "GET /api/shorten test",
+			request:      "/api/shorten",
+			method:       http.MethodGet,
+			body:         "",
+			expectedCode: http.StatusMethodNotAllowed,
 		},
 		{
 			name:         "PUT test",
