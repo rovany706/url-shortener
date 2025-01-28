@@ -33,6 +33,11 @@ func main() {
 
 func run(appConfig *config.AppConfig, logger *zap.Logger) error {
 	app := app.URLShortenerApp{}
+	err := app.UseStorageFromFile(appConfig.FileStoragePath)
+
+	if err != nil {
+		panic(err)
+	}
 
 	return server.RunServer(&app, appConfig, logger)
 }

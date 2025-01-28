@@ -12,19 +12,24 @@ import (
 	"go.uber.org/zap"
 )
 
-const ErrInvalidBaseURL = "invalid base URL"
-const ErrInvalidAppRunAddress = "invalid address and port to run server"
-const ErrInvalidLogLevel = "invalid log level"
+const (
+	ErrInvalidBaseURL         = "invalid base URL"
+	ErrInvalidAppRunAddress   = "invalid address and port to run server"
+	ErrInvalidLogLevel        = "invalid log level"
+	ErrInvalidFileStoragePath = "invalid file storage path"
+
+	defaultBaseURL         = "http://localhost:8080"
+	defaultAppRunAddress   = ":8080"
+	defaultLogLevel        = "info"
+	defaultFileStoragePath = "storage.json"
+)
 
 type AppConfig struct {
-	BaseURL       string `env:"BASE_URL"`
-	AppRunAddress string `env:"SERVER_ADDRESS"`
-	LogLevel      string `env:"LOG_LEVEL"`
+	BaseURL         string `env:"BASE_URL"`
+	AppRunAddress   string `env:"SERVER_ADDRESS"`
+	LogLevel        string `env:"LOG_LEVEL"`
+	FileStoragePath string `env:"FILE_STORAGE_PATH"`
 }
-
-const defaultBaseURL = "http://localhost:8080"
-const defaultAppRunAddress = ":8080"
-const defaultLogLevel = "info"
 
 type Option func(*AppConfig)
 
@@ -52,11 +57,20 @@ func WithLogLevel(logLevel string) Option {
 	}
 }
 
+func WithFileStoragePath(fileStoragePath string) Option {
+	return func(c *AppConfig) {
+		if fileStoragePath != "" {
+			c.FileStoragePath = fileStoragePath
+		}
+	}
+}
+
 func NewConfig(opts ...Option) *AppConfig {
 	cfg := &AppConfig{
-		BaseURL:       defaultBaseURL,
-		AppRunAddress: defaultAppRunAddress,
-		LogLevel:      defaultLogLevel,
+		BaseURL:         defaultBaseURL,
+		AppRunAddress:   defaultAppRunAddress,
+		LogLevel:        defaultLogLevel,
+		FileStoragePath: defaultFileStoragePath,
 	}
 
 	for _, opt := range opts {
@@ -74,6 +88,7 @@ func ParseArgs(programName string, args []string) (appConfig *AppConfig, err err
 	flags.StringVar(&appConfig.AppRunAddress, "a", defaultAppRunAddress, fmt.Sprintf("address and port to run server (default: %s)", defaultAppRunAddress))
 	flags.StringVar(&appConfig.BaseURL, "b", defaultBaseURL, fmt.Sprintf("base URL for short links (default: %s)", defaultBaseURL))
 	flags.StringVar(&appConfig.LogLevel, "l", defaultLogLevel, fmt.Sprintf("log level (default: %s)", defaultLogLevel))
+	flags.StringVar(&appConfig.FileStoragePath, "f", defaultFileStoragePath, fmt.Sprintf("file storage path (default %s)", defaultFileStoragePath))
 
 	err = flags.Parse(args)
 

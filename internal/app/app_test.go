@@ -3,28 +3,26 @@ package app
 import (
 	"testing"
 
+	"github.com/rovany706/url-shortener/internal/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func initializeShortLinkMap(app *URLShortenerApp, initialMap map[string]string) {
-	for k, v := range initialMap {
-		app.ShortURLMap.Store(k, v)
-	}
-}
-
 func TestGetFullURL(t *testing.T) {
 	tests := []struct {
 		name          string
-		existingLinks map[string]string
+		existingLinks storage.Storage
 		shortID       string
 		wantFullURL   string
 		wantOk        bool
 	}{
 		{
 			name: "shortID exists",
-			existingLinks: map[string]string{
-				"id1": "http://example.com/",
+			existingLinks: storage.Storage{
+				{
+					ShortID: "id1",
+					FullURL: "http://example.com/",
+				},
 			},
 			shortID:     "id1",
 			wantFullURL: "http://example.com/",
@@ -32,8 +30,11 @@ func TestGetFullURL(t *testing.T) {
 		},
 		{
 			name: "shortID don't exist",
-			existingLinks: map[string]string{
-				"id1": "http://example.com/",
+			existingLinks: storage.Storage{
+				{
+					ShortID: "id1",
+					FullURL: "http://example.com/",
+				},
 			},
 			shortID:     "testid",
 			wantFullURL: "",
@@ -43,8 +44,7 @@ func TestGetFullURL(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app := URLShortenerApp{}
-			initializeShortLinkMap(&app, tt.existingLinks)
+			app := NewURLShortenerApp(tt.existingLinks)
 
 			fullLink, ok := app.GetFullURL(tt.shortID)
 
