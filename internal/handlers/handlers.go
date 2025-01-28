@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func RedirectHandler(app app.URLShortener) func(w http.ResponseWriter, r *http.Request) {
+func RedirectHandler(app app.URLShortener) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		shortID := chi.URLParam(r, "id")
 		if fullURL, ok := app.GetFullURL(shortID); ok {
@@ -23,7 +23,7 @@ func RedirectHandler(app app.URLShortener) func(w http.ResponseWriter, r *http.R
 	}
 }
 
-func MakeShortURLHandler(app app.URLShortener, appConfig *config.AppConfig) func(w http.ResponseWriter, r *http.Request) {
+func MakeShortURLHandler(app app.URLShortener, appConfig *config.AppConfig) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		body, err := io.ReadAll(r.Body)
 
@@ -45,7 +45,7 @@ func MakeShortURLHandler(app app.URLShortener, appConfig *config.AppConfig) func
 	}
 }
 
-func MakeShortURLHandlerJSON(app app.URLShortener, appConfig *config.AppConfig, logger *zap.Logger) func(w http.ResponseWriter, r *http.Request) {
+func MakeShortURLHandlerJSON(app app.URLShortener, appConfig *config.AppConfig, logger *zap.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		decoder := json.NewDecoder(r.Body)
 		var request models.ShortenRequest

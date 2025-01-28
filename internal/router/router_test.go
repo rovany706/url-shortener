@@ -1,10 +1,11 @@
 package router
 
 import (
+	"bytes"
+	"compress/gzip"
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/rovany706/url-shortener/internal/app"
@@ -15,8 +16,32 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 )
 
-func testRequest(t *testing.T, ts *httptest.Server, method string, path string, body string) (*http.Response, string) {
-	request, err := http.NewRequest(method, ts.URL+path, strings.NewReader(body))
+func gzipCompressString(s string) ([]byte, error) {
+	buf := bytes.NewBuffer(nil)
+	zb := gzip.NewWriter(buf)
+	_, err := zb.Write([]byte(s))
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = zb.Close()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+func testRequest(t *testing.T, ts *httptest.Server, method string, path string, requestBody string) (*http.Response, string) {
+	compressed, err := gzipCompressString(requestBody)
+	require.NoError(t, err)
+
+	request, err := http.NewRequest(method, ts.URL+path, bytes.NewReader(compressed))
+	request.Header.Set("Accept-Encoding", "gzip")
+	request.Header.Set("Content-Encoding", "gzip")
+
 	require.NoError(t, err)
 
 	client := ts.Client()
@@ -28,7 +53,10 @@ func testRequest(t *testing.T, ts *httptest.Server, method string, path string, 
 	response, err := client.Do(request)
 	require.NoError(t, err)
 
-	responseBody, err := io.ReadAll(response.Body)
+	zr, err := gzip.NewReader(response.Body)
+	require.NoError(t, err)
+
+	responseBody, err := io.ReadAll(zr)
 	require.NoError(t, err)
 
 	return response, string(responseBody)

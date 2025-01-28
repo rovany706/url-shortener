@@ -13,6 +13,8 @@ func MainRouter(app app.URLShortener, appConfig *config.AppConfig, logger *zap.L
 	r := chi.NewRouter()
 	r.Use(middleware.ResponseLogger(logger))
 	r.Use(middleware.RequestLogger(logger))
+	r.Use(middleware.RequestGzipCompress())
+	r.Use(middleware.ResponseGzipCompress())
 	r.Route("/", func(r chi.Router) {
 		r.Get("/{id}", handlers.RedirectHandler(app))
 		r.Post("/", handlers.MakeShortURLHandler(app, appConfig))
