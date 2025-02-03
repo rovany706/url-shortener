@@ -5,7 +5,11 @@ import (
 
 	"github.com/rovany706/url-shortener/internal/app"
 	"github.com/rovany706/url-shortener/internal/config"
+	"github.com/rovany706/url-shortener/internal/logger"
+	"github.com/rovany706/url-shortener/internal/repository"
 	"github.com/rovany706/url-shortener/internal/server"
+	"github.com/spf13/afero"
+	"go.uber.org/zap"
 )
 
 var appConfig *config.AppConfig
@@ -18,13 +22,25 @@ func main() {
 		panic(err)
 	}
 
-	if err := run(appConfig); err != nil {
+	logger, err := logger.NewLogger(appConfig.LogLevel)
+
+	if err != nil {
+		panic(err)
+	}
+
+	if err = run(appConfig, logger); err != nil {
 		panic(err)
 	}
 }
 
-func run(appConfig *config.AppConfig) error {
-	app := app.URLShortenerApp{}
+func run(appConfig *config.AppConfig, logger *zap.Logger) error {
+	repository, err := repository.NewAppRepository(afero.NewOsFs(), appConfig.FileStoragePath)
 
-	return server.RunServer(&app, appConfig)
+	if err != nil {
+		panic(err)
+	}
+
+	app := app.NewURLShortenerApp(repository)
+
+	return server.RunServer(app, appConfig, logger)
 }

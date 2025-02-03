@@ -31,9 +31,19 @@ func TestParseFlags(t *testing.T) {
 			*NewConfig(WithAppRunAddress(":8888")),
 		},
 		{
+			"only LogLevel",
+			[]string{programName, "-l", "info"},
+			*NewConfig(WithLogLevel("info")),
+		},
+		{
+			"only file storage path",
+			[]string{programName, "-f", "storage.json"},
+			*NewConfig(WithFileStoragePath("storage.json")),
+		},
+		{
 			"full args",
-			[]string{programName, "-a", ":8888", "-b", "http://test.com/"},
-			*NewConfig(WithBaseURL("http://test.com/"), WithAppRunAddress(":8888")),
+			[]string{programName, "-a", ":8888", "-b", "http://test.com/", "-l", "debug"},
+			*NewConfig(WithBaseURL("http://test.com/"), WithAppRunAddress(":8888"), WithLogLevel("debug")),
 		},
 	}
 
@@ -62,6 +72,16 @@ func TestParseArgsErr(t *testing.T) {
 			"invalid AppRunAddress",
 			[]string{programName, "-a", "test:onetwothree"},
 			ErrInvalidAppRunAddress,
+		},
+		{
+			"invalid LogLevel",
+			[]string{programName, "-l", "debug123"},
+			ErrInvalidLogLevel,
+		},
+		{
+			"invalid file storage path",
+			[]string{programName, "-f", ""},
+			ErrInvalidFileStoragePath,
 		},
 	}
 

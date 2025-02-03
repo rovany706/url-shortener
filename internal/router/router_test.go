@@ -1,20 +1,47 @@
 package router
 
 import (
+	"bytes"
+	"compress/gzip"
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/rovany706/url-shortener/internal/app"
 	"github.com/rovany706/url-shortener/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
-func testRequest(t *testing.T, ts *httptest.Server, method string, path string, body string) (*http.Response, string) {
-	request, err := http.NewRequest(method, ts.URL+path, strings.NewReader(body))
+func gzipCompressString(s string) ([]byte, error) {
+	buf := bytes.NewBuffer(nil)
+	zb := gzip.NewWriter(buf)
+	_, err := zb.Write([]byte(s))
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = zb.Close()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+func testRequest(t *testing.T, ts *httptest.Server, method string, path string, requestBody string) (*http.Response, string) {
+	compressed, err := gzipCompressString(requestBody)
+	require.NoError(t, err)
+
+	request, err := http.NewRequest(method, ts.URL+path, bytes.NewReader(compressed))
+	request.Header.Set("Accept-Encoding", "gzip")
+	request.Header.Set("Content-Encoding", "gzip")
+
 	require.NoError(t, err)
 
 	client := ts.Client()
@@ -26,7 +53,10 @@ func testRequest(t *testing.T, ts *httptest.Server, method string, path string, 
 	response, err := client.Do(request)
 	require.NoError(t, err)
 
-	responseBody, err := io.ReadAll(response.Body)
+	zr, err := gzip.NewReader(response.Body)
+	require.NoError(t, err)
+
+	responseBody, err := io.ReadAll(zr)
 	require.NoError(t, err)
 
 	return response, string(responseBody)
@@ -47,18 +77,32 @@ func TestMainRouter(t *testing.T) {
 		expectedCode int
 	}{
 		{
-			name:         "POST test",
+			name:         "POST / test",
 			request:      "/",
 			method:       http.MethodPost,
 			body:         "http://example.com/123",
 			expectedCode: http.StatusCreated,
 		},
 		{
-			name:         "GET test",
+			name:         "GET / test",
 			request:      "/id1",
 			method:       http.MethodGet,
 			body:         "",
 			expectedCode: http.StatusTemporaryRedirect,
+		},
+		{
+			name:         "POST /api/shorten test",
+			request:      "/api/shorten",
+			method:       http.MethodPost,
+			body:         "{\"result\":\"http://localhost:8080/0\"}\n",
+			expectedCode: http.StatusCreated,
+		},
+		{
+			name:         "GET /api/shorten test",
+			request:      "/api/shorten",
+			method:       http.MethodGet,
+			body:         "",
+			expectedCode: http.StatusMethodNotAllowed,
 		},
 		{
 			name:         "PUT test",
@@ -78,9 +122,11 @@ func TestMainRouter(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			obs, logs := observer.New(zap.InfoLevel)
+			logger := zap.New(obs)
 			shortener := app.NewMockURLShortener(shortURLMap)
 
-			r := MainRouter(shortener, appConfig)
+			r := MainRouter(shortener, appConfig, logger)
 			ts := httptest.NewServer(r)
 			defer ts.Close()
 
@@ -88,6 +134,7 @@ func TestMainRouter(t *testing.T) {
 			defer response.Body.Close()
 
 			assert.Equal(t, tt.expectedCode, response.StatusCode)
+			assert.NotEmpty(t, logs.AllUntimed())
 		})
 	}
 }

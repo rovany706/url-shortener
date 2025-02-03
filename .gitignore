@@ -20,4 +20,5 @@ vendor/
 
 # IDEs directories
 .idea
-.vscode
+
+cmd/shortener/storage.json
