@@ -124,6 +124,10 @@ func validateParsedArgs(appConfig *AppConfig) error {
 		return errors.New(ErrInvalidLogLevel)
 	}
 
+	if appConfig.FileStoragePath == "" {
+		return errors.New(ErrInvalidFileStoragePath)
+	}
+
 	return nil
 }
 

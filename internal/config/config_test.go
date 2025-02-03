@@ -36,6 +36,11 @@ func TestParseFlags(t *testing.T) {
 			*NewConfig(WithLogLevel("info")),
 		},
 		{
+			"only file storage path",
+			[]string{programName, "-f", "storage.json"},
+			*NewConfig(WithFileStoragePath("storage.json")),
+		},
+		{
 			"full args",
 			[]string{programName, "-a", ":8888", "-b", "http://test.com/", "-l", "debug"},
 			*NewConfig(WithBaseURL("http://test.com/"), WithAppRunAddress(":8888"), WithLogLevel("debug")),
@@ -72,6 +77,11 @@ func TestParseArgsErr(t *testing.T) {
 			"invalid LogLevel",
 			[]string{programName, "-l", "debug123"},
 			ErrInvalidLogLevel,
+		},
+		{
+			"invalid file storage path",
+			[]string{programName, "-f", ""},
+			ErrInvalidFileStoragePath,
 		},
 	}
 

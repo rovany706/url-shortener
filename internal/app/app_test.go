@@ -3,7 +3,7 @@ package app
 import (
 	"testing"
 
-	"github.com/rovany706/url-shortener/internal/storage"
+	"github.com/rovany706/url-shortener/internal/repository"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -11,18 +11,15 @@ import (
 func TestGetFullURL(t *testing.T) {
 	tests := []struct {
 		name          string
-		existingLinks storage.Storage
+		existingLinks map[string]string
 		shortID       string
 		wantFullURL   string
 		wantOk        bool
 	}{
 		{
 			name: "shortID exists",
-			existingLinks: storage.Storage{
-				{
-					ShortID: "id1",
-					FullURL: "http://example.com/",
-				},
+			existingLinks: map[string]string{
+				"id1": "http://example.com/",
 			},
 			shortID:     "id1",
 			wantFullURL: "http://example.com/",
@@ -30,11 +27,8 @@ func TestGetFullURL(t *testing.T) {
 		},
 		{
 			name: "shortID don't exist",
-			existingLinks: storage.Storage{
-				{
-					ShortID: "id1",
-					FullURL: "http://example.com/",
-				},
+			existingLinks: map[string]string{
+				"id1": "http://example.com/",
 			},
 			shortID:     "testid",
 			wantFullURL: "",
@@ -44,7 +38,8 @@ func TestGetFullURL(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app := NewURLShortenerApp(tt.existingLinks)
+			repository := repository.NewMockRepository(tt.existingLinks)
+			app := NewURLShortenerApp(repository)
 
 			fullLink, ok := app.GetFullURL(tt.shortID)
 
@@ -88,7 +83,8 @@ func TestGetShortID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app := URLShortenerApp{}
+			repository := repository.NewMockRepository(map[string]string{})
+			app := NewURLShortenerApp(repository)
 			shortID, err := app.GetShortID(tt.fullURL)
 
 			if !tt.wantErr {
