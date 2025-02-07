@@ -256,6 +256,8 @@ func TestPingHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			testLogger := zaptest.NewLogger(t)
 			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
 			db := mock.NewMockDatabase(ctrl)
 			db.EXPECT().Ping(gomock.Any()).Return(tt.pingErr)
 

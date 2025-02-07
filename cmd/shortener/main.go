@@ -49,5 +49,7 @@ func run(appConfig *config.AppConfig, logger *zap.Logger) error {
 		panic(err)
 	}
 
+	defer db.Close()
+
 	return server.RunServer(app, appConfig, db, logger)
 }
