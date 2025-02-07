@@ -17,11 +17,13 @@ const (
 	ErrInvalidAppRunAddress   = "invalid address and port to run server"
 	ErrInvalidLogLevel        = "invalid log level"
 	ErrInvalidFileStoragePath = "invalid file storage path"
+	ErrInvalidDatabaseDSN     = "invalid database dsn"
 
 	defaultBaseURL         = "http://localhost:8080"
 	defaultAppRunAddress   = ":8080"
 	defaultLogLevel        = "info"
 	defaultFileStoragePath = "storage.json"
+	defaultDatabaseDSN     = "postgresql://app:example@localhost:5432/shortenerdb"
 )
 
 type AppConfig struct {
@@ -29,6 +31,7 @@ type AppConfig struct {
 	AppRunAddress   string `env:"SERVER_ADDRESS"`
 	LogLevel        string `env:"LOG_LEVEL"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
+	DatabaseDSN     string `env:"DATABSE_DSN"`
 }
 
 type Option func(*AppConfig)
@@ -65,12 +68,21 @@ func WithFileStoragePath(fileStoragePath string) Option {
 	}
 }
 
+func WithDatabseDSN(databaseDSN string) Option {
+	return func(c *AppConfig) {
+		if databaseDSN != "" {
+			c.DatabaseDSN = databaseDSN
+		}
+	}
+}
+
 func NewConfig(opts ...Option) *AppConfig {
 	cfg := &AppConfig{
 		BaseURL:         defaultBaseURL,
 		AppRunAddress:   defaultAppRunAddress,
 		LogLevel:        defaultLogLevel,
 		FileStoragePath: defaultFileStoragePath,
+		DatabaseDSN:     defaultDatabaseDSN,
 	}
 
 	for _, opt := range opts {
@@ -89,6 +101,7 @@ func ParseArgs(programName string, args []string) (appConfig *AppConfig, err err
 	flags.StringVar(&appConfig.BaseURL, "b", defaultBaseURL, fmt.Sprintf("base URL for short links (default: %s)", defaultBaseURL))
 	flags.StringVar(&appConfig.LogLevel, "l", defaultLogLevel, fmt.Sprintf("log level (default: %s)", defaultLogLevel))
 	flags.StringVar(&appConfig.FileStoragePath, "f", defaultFileStoragePath, fmt.Sprintf("file storage path (default %s)", defaultFileStoragePath))
+	flags.StringVar(&appConfig.DatabaseDSN, "d", defaultDatabaseDSN, fmt.Sprintf("database DSN (default %s)", defaultDatabaseDSN))
 
 	err = flags.Parse(args)
 
@@ -126,6 +139,10 @@ func validateParsedArgs(appConfig *AppConfig) error {
 
 	if appConfig.FileStoragePath == "" {
 		return errors.New(ErrInvalidFileStoragePath)
+	}
+
+	if appConfig.DatabaseDSN == "" {
+		return errors.New(ErrInvalidDatabaseDSN)
 	}
 
 	return nil

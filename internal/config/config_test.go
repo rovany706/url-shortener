@@ -41,6 +41,11 @@ func TestParseFlags(t *testing.T) {
 			*NewConfig(WithFileStoragePath("storage.json")),
 		},
 		{
+			"only database DSN",
+			[]string{programName, "-d", "postgresql://user@localhost/db"},
+			*NewConfig(WithDatabseDSN("postgresql://user@localhost/db")),
+		},
+		{
 			"full args",
 			[]string{programName, "-a", ":8888", "-b", "http://test.com/", "-l", "debug"},
 			*NewConfig(WithBaseURL("http://test.com/"), WithAppRunAddress(":8888"), WithLogLevel("debug")),
@@ -82,6 +87,11 @@ func TestParseArgsErr(t *testing.T) {
 			"invalid file storage path",
 			[]string{programName, "-f", ""},
 			ErrInvalidFileStoragePath,
+		},
+		{
+			"invalid database DSN",
+			[]string{programName, "-d", ""},
+			ErrInvalidDatabaseDSN,
 		},
 	}
 
