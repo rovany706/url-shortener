@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/rovany706/url-shortener/internal/app"
 	"github.com/rovany706/url-shortener/internal/config"
+	"github.com/rovany706/url-shortener/internal/database"
 	"github.com/rovany706/url-shortener/internal/models"
 	"go.uber.org/zap"
 )
@@ -76,5 +77,19 @@ func MakeShortURLHandlerJSON(app app.URLShortener, appConfig *config.AppConfig, 
 			http.Error(w, "", http.StatusInternalServerError)
 			return
 		}
+	}
+}
+
+func PingHandler(db database.Database, logger *zap.Logger) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		err := db.Ping(r.Context())
+
+		if err != nil {
+			logger.Info("unable to ping database", zap.Error(err))
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
 	}
 }

@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"os"
 
 	"github.com/rovany706/url-shortener/internal/app"
 	"github.com/rovany706/url-shortener/internal/config"
+	"github.com/rovany706/url-shortener/internal/database"
 	"github.com/rovany706/url-shortener/internal/logger"
 	"github.com/rovany706/url-shortener/internal/repository"
 	"github.com/rovany706/url-shortener/internal/server"
@@ -41,6 +43,11 @@ func run(appConfig *config.AppConfig, logger *zap.Logger) error {
 	}
 
 	app := app.NewURLShortenerApp(repository)
+	db, err := database.InitConnection(context.Background(), appConfig.DatabaseDSN)
 
-	return server.RunServer(app, appConfig, logger)
+	if err != nil {
+		panic(err)
+	}
+
+	return server.RunServer(app, appConfig, db, logger)
 }

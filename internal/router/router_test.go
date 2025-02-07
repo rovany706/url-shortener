@@ -10,8 +10,10 @@ import (
 
 	"github.com/rovany706/url-shortener/internal/app"
 	"github.com/rovany706/url-shortener/internal/config"
+	"github.com/rovany706/url-shortener/internal/database/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
 )
@@ -118,15 +120,33 @@ func TestMainRouter(t *testing.T) {
 			body:         "",
 			expectedCode: http.StatusMethodNotAllowed,
 		},
+		{
+			name:         "GET /ping test",
+			request:      "/ping",
+			method:       http.MethodGet,
+			body:         "",
+			expectedCode: http.StatusOK,
+		},
+		{
+			name:         "POST /ping test",
+			request:      "/ping",
+			method:       http.MethodPost,
+			body:         "",
+			expectedCode: http.StatusMethodNotAllowed,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			db := mock.NewMockDatabase(ctrl)
+			db.EXPECT().Ping(gomock.Any()).Return(nil).AnyTimes()
 			obs, logs := observer.New(zap.InfoLevel)
 			logger := zap.New(obs)
 			shortener := app.NewMockURLShortener(shortURLMap)
 
-			r := MainRouter(shortener, appConfig, logger)
+			r := MainRouter(shortener, appConfig, db, logger)
 			ts := httptest.NewServer(r)
 			defer ts.Close()
 
