@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"crypto/sha1"
 	"fmt"
 	"net/url"
@@ -11,8 +12,8 @@ import (
 const shortHashByteCount = 4
 
 type URLShortener interface {
-	GetFullURL(shortID string) (fullURL string, ok bool)
-	GetShortID(fullURL string) (shortID string, err error)
+	GetFullURL(ctx context.Context, shortID string) (fullURL string, ok bool)
+	GetShortID(ctx context.Context, fullURL string) (shortID string, err error)
 }
 
 type URLShortenerApp struct {
@@ -29,12 +30,12 @@ func NewURLShortenerApp(repository repository.Repository) *URLShortenerApp {
 }
 
 // Метод GetFullURL возвращает полную ссылку по короткому id и флаг успеха операции.
-func (app *URLShortenerApp) GetFullURL(shortID string) (fullURL string, ok bool) {
-	return app.repository.GetFullURL(shortID)
+func (app *URLShortenerApp) GetFullURL(ctx context.Context, shortID string) (fullURL string, ok bool) {
+	return app.repository.GetFullURL(ctx, shortID)
 }
 
 // Метод GetShortID возвращает первые 4 байта sha1-хеша ссылки в виде строки.
-func (app *URLShortenerApp) GetShortID(fullURL string) (shortID string, err error) {
+func (app *URLShortenerApp) GetShortID(ctx context.Context, fullURL string) (shortID string, err error) {
 	if _, err = url.ParseRequestURI(fullURL); err != nil {
 		return "", err
 	}
@@ -43,7 +44,7 @@ func (app *URLShortenerApp) GetShortID(fullURL string) (shortID string, err erro
 	shortHash := hash[:shortHashByteCount]
 	shortID = fmt.Sprintf("%x", shortHash)
 
-	if err := app.repository.SaveEntry(shortID, fullURL); err != nil {
+	if err := app.repository.SaveEntry(ctx, shortID, fullURL); err != nil {
 		return "", err
 	}
 

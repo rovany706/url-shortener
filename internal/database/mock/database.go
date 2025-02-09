@@ -11,6 +11,7 @@ package mock
 
 import (
 	context "context"
+	sql "database/sql"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
@@ -52,16 +53,89 @@ func (mr *MockDatabaseMockRecorder) Close() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockDatabase)(nil).Close))
 }
 
-// Ping mocks base method.
-func (m *MockDatabase) Ping(ctx context.Context) error {
+// EnsureCreated mocks base method.
+func (m *MockDatabase) EnsureCreated(ctx context.Context) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Ping", ctx)
+	ret := m.ctrl.Call(m, "EnsureCreated", ctx)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Ping indicates an expected call of Ping.
-func (mr *MockDatabaseMockRecorder) Ping(ctx any) *gomock.Call {
+// EnsureCreated indicates an expected call of EnsureCreated.
+func (mr *MockDatabaseMockRecorder) EnsureCreated(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ping", reflect.TypeOf((*MockDatabase)(nil).Ping), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnsureCreated", reflect.TypeOf((*MockDatabase)(nil).EnsureCreated), ctx)
+}
+
+// ExecContext mocks base method.
+func (m *MockDatabase) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, query}
+	for _, a := range args {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ExecContext", varargs...)
+	ret0, _ := ret[0].(sql.Result)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ExecContext indicates an expected call of ExecContext.
+func (mr *MockDatabaseMockRecorder) ExecContext(ctx, query any, args ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, query}, args...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExecContext", reflect.TypeOf((*MockDatabase)(nil).ExecContext), varargs...)
+}
+
+// PingContext mocks base method.
+func (m *MockDatabase) PingContext(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PingContext", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// PingContext indicates an expected call of PingContext.
+func (mr *MockDatabaseMockRecorder) PingContext(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PingContext", reflect.TypeOf((*MockDatabase)(nil).PingContext), ctx)
+}
+
+// QueryContext mocks base method.
+func (m *MockDatabase) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, query}
+	for _, a := range args {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "QueryContext", varargs...)
+	ret0, _ := ret[0].(*sql.Rows)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// QueryContext indicates an expected call of QueryContext.
+func (mr *MockDatabaseMockRecorder) QueryContext(ctx, query any, args ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, query}, args...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QueryContext", reflect.TypeOf((*MockDatabase)(nil).QueryContext), varargs...)
+}
+
+// QueryRowContext mocks base method.
+func (m *MockDatabase) QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, query}
+	for _, a := range args {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "QueryRowContext", varargs...)
+	ret0, _ := ret[0].(*sql.Row)
+	return ret0
+}
+
+// QueryRowContext indicates an expected call of QueryRowContext.
+func (mr *MockDatabaseMockRecorder) QueryRowContext(ctx, query any, args ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, query}, args...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QueryRowContext", reflect.TypeOf((*MockDatabase)(nil).QueryRowContext), varargs...)
 }

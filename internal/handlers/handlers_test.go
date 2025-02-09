@@ -12,7 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/rovany706/url-shortener/internal/app"
 	"github.com/rovany706/url-shortener/internal/config"
-	"github.com/rovany706/url-shortener/internal/database/mock"
+	"github.com/rovany706/url-shortener/internal/repository/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -258,13 +258,13 @@ func TestPingHandler(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			db := mock.NewMockDatabase(ctrl)
-			db.EXPECT().Ping(gomock.Any()).Return(tt.pingErr)
+			repository := mock.NewMockRepository(ctrl)
+			repository.EXPECT().Ping(gomock.Any()).Return(tt.pingErr)
 
 			request := httptest.NewRequest(http.MethodGet, "/ping", nil)
 			w := httptest.NewRecorder()
 
-			PingHandler(db, testLogger)(w, request)
+			PingHandler(repository, testLogger)(w, request)
 
 			response := w.Result()
 			defer response.Body.Close()

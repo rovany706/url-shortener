@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"strconv"
 )
@@ -11,12 +12,12 @@ type MockURLShortener struct {
 	counter     int
 }
 
-func (shortener *MockURLShortener) GetFullURL(shortID string) (fullURL string, ok bool) {
+func (shortener *MockURLShortener) GetFullURL(ctx context.Context, shortID string) (fullURL string, ok bool) {
 	fullURL, ok = shortener.shortURLMap[shortID]
 	return fullURL, ok
 }
 
-func (shortener *MockURLShortener) GetShortID(fullURL string) (shortID string, err error) {
+func (shortener *MockURLShortener) GetShortID(ctx context.Context, fullURL string) (shortID string, err error) {
 	shortID = strconv.Itoa(shortener.counter)
 	shortener.shortURLMap[shortID] = fullURL
 	shortener.counter++
@@ -33,10 +34,10 @@ func NewMockURLShortener(shortURLMap map[string]string) *MockURLShortener {
 // Error shortener mock
 type ErrMockURLShortener struct{}
 
-func (shortener *ErrMockURLShortener) GetFullURL(shortID string) (fullURL string, ok bool) {
+func (shortener *ErrMockURLShortener) GetFullURL(ctx context.Context, shortID string) (fullURL string, ok bool) {
 	return "", false
 }
 
-func (shortener *ErrMockURLShortener) GetShortID(fullURL string) (shortID string, err error) {
+func (shortener *ErrMockURLShortener) GetShortID(ctx context.Context, fullURL string) (shortID string, err error) {
 	return "", errors.New("test error")
 }
