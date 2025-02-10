@@ -8,10 +8,11 @@ import (
 )
 
 var (
-	insertEntrySql = fmt.Sprintf(
+	insertEntrySQL = fmt.Sprintf(
 		`INSERT INTO %s (short_id, full_url)
-		VALUES ($1, $2)`, database.TableName)
-	selectEntrySql = fmt.Sprintf(
+		VALUES ($1, $2)
+		ON CONFLICT (short_id) DO NOTHING`, database.TableName)
+	selectEntrySQL = fmt.Sprintf(
 		`SELECT full_url FROM %s
 		WHERE short_id = $1 LIMIT 1`, database.TableName)
 )
@@ -37,7 +38,7 @@ func NewDBRepository(ctx context.Context, connString string) (Repository, error)
 }
 
 func (repository *DBRepository) GetFullURL(ctx context.Context, shortID string) (fullURL string, ok bool) {
-	row := repository.db.QueryRowContext(ctx, selectEntrySql, shortID)
+	row := repository.db.QueryRowContext(ctx, selectEntrySQL, shortID)
 	err := row.Scan(&fullURL)
 
 	if err != nil {
@@ -48,7 +49,7 @@ func (repository *DBRepository) GetFullURL(ctx context.Context, shortID string) 
 }
 
 func (repository *DBRepository) SaveEntry(ctx context.Context, shortID string, fullURL string) error {
-	_, err := repository.db.ExecContext(ctx, insertEntrySql, shortID, fullURL)
+	_, err := repository.db.ExecContext(ctx, insertEntrySQL, shortID, fullURL)
 
 	return err
 }

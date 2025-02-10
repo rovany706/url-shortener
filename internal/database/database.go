@@ -11,10 +11,10 @@ import (
 
 const TableName = "short_links"
 
-var CreateTableSql = fmt.Sprintf(
+var CreateTableSQL = fmt.Sprintf(
 	`CREATE TABLE %s (
 	id SERIAL PRIMARY KEY,
-	short_id varchar(8),
+	short_id varchar(8) UNIQUE,
 	full_url text)`,
 	TableName)
 
@@ -27,23 +27,23 @@ type Database interface {
 	Close()
 }
 
-type SqlDatabase struct {
+type SQLDatabase struct {
 	dbConnection *sql.DB
 }
 
-func InitConnection(ctx context.Context, connString string) (*SqlDatabase, error) {
+func InitConnection(ctx context.Context, connString string) (*SQLDatabase, error) {
 	dbConnection, err := sql.Open("pgx", connString)
 	if err != nil {
 		return nil, err
 	}
 
-	db := SqlDatabase{
+	db := SQLDatabase{
 		dbConnection: dbConnection,
 	}
 	return &db, nil
 }
 
-func (db *SqlDatabase) EnsureCreated(ctx context.Context) error {
+func (db *SQLDatabase) EnsureCreated(ctx context.Context) error {
 	ok, err := db.tableExists(ctx, "short_links")
 	if err != nil {
 		return err
@@ -53,12 +53,12 @@ func (db *SqlDatabase) EnsureCreated(ctx context.Context) error {
 		return nil
 	}
 
-	_, err = db.ExecContext(ctx, CreateTableSql)
+	_, err = db.ExecContext(ctx, CreateTableSQL)
 
 	return err
 }
 
-func (db *SqlDatabase) tableExists(ctx context.Context, tableName string) (bool, error) {
+func (db *SQLDatabase) tableExists(ctx context.Context, tableName string) (bool, error) {
 	var n int64
 	err := db.dbConnection.QueryRowContext(ctx, "SELECT 1 FROM information_schema.tables where table_name = $1", tableName).Scan(&n)
 	if err != nil {
@@ -71,21 +71,21 @@ func (db *SqlDatabase) tableExists(ctx context.Context, tableName string) (bool,
 	return true, nil
 }
 
-func (db *SqlDatabase) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
+func (db *SQLDatabase) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
 	return db.dbConnection.ExecContext(ctx, query, args...)
 }
 
-func (db *SqlDatabase) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
+func (db *SQLDatabase) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
 	return db.dbConnection.QueryContext(ctx, query, args...)
 }
-func (db *SqlDatabase) QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row {
+func (db *SQLDatabase) QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row {
 	return db.dbConnection.QueryRowContext(ctx, query, args...)
 }
 
-func (db *SqlDatabase) PingContext(ctx context.Context) error {
+func (db *SQLDatabase) PingContext(ctx context.Context) error {
 	return db.dbConnection.PingContext(ctx)
 }
 
-func (db *SqlDatabase) Close() {
+func (db *SQLDatabase) Close() {
 	db.dbConnection.Close()
 }
