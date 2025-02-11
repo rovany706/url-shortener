@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"testing"
 
 	"github.com/rovany706/url-shortener/internal/repository"
@@ -36,12 +37,14 @@ func TestGetFullURL(t *testing.T) {
 		},
 	}
 
+	ctx := context.Background()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			repository := repository.NewMockRepository(tt.existingLinks)
 			app := NewURLShortenerApp(repository)
 
-			fullLink, ok := app.GetFullURL(tt.shortID)
+			fullLink, ok := app.GetFullURL(ctx, tt.shortID)
 
 			if tt.wantOk {
 				assert.True(t, ok)
@@ -81,11 +84,13 @@ func TestGetShortID(t *testing.T) {
 		},
 	}
 
+	ctx := context.Background()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			repository := repository.NewMockRepository(map[string]string{})
 			app := NewURLShortenerApp(repository)
-			shortID, err := app.GetShortID(tt.fullURL)
+			shortID, err := app.GetShortID(ctx, tt.fullURL)
 
 			if !tt.wantErr {
 				require.NoError(t, err)

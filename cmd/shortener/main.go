@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 
 	"github.com/rovany706/url-shortener/internal/app"
@@ -8,7 +9,6 @@ import (
 	"github.com/rovany706/url-shortener/internal/logger"
 	"github.com/rovany706/url-shortener/internal/repository"
 	"github.com/rovany706/url-shortener/internal/server"
-	"github.com/spf13/afero"
 	"go.uber.org/zap"
 )
 
@@ -34,7 +34,7 @@ func main() {
 }
 
 func run(appConfig *config.AppConfig, logger *zap.Logger) error {
-	repository, err := repository.NewAppRepository(afero.NewOsFs(), appConfig.FileStoragePath)
+	repository, err := repository.NewAppRepository(context.Background(), appConfig)
 
 	if err != nil {
 		panic(err)
@@ -42,5 +42,7 @@ func run(appConfig *config.AppConfig, logger *zap.Logger) error {
 
 	app := app.NewURLShortenerApp(repository)
 
-	return server.RunServer(app, appConfig, logger)
+	defer repository.Close()
+
+	return server.RunServer(app, appConfig, repository, logger)
 }
