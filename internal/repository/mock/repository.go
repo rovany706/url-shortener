@@ -41,9 +41,11 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Close mocks base method.
-func (m *MockRepository) Close() {
+func (m *MockRepository) Close() error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Close")
+	ret := m.ctrl.Call(m, "Close")
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Close indicates an expected call of Close.
@@ -79,6 +81,20 @@ func (m *MockRepository) Ping(ctx context.Context) error {
 func (mr *MockRepositoryMockRecorder) Ping(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ping", reflect.TypeOf((*MockRepository)(nil).Ping), ctx)
+}
+
+// SaveEntries mocks base method.
+func (m *MockRepository) SaveEntries(ctx context.Context, shortIDMap map[string]string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveEntries", ctx, shortIDMap)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveEntries indicates an expected call of SaveEntries.
+func (mr *MockRepositoryMockRecorder) SaveEntries(ctx, shortIDMap any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveEntries", reflect.TypeOf((*MockRepository)(nil).SaveEntries), ctx, shortIDMap)
 }
 
 // SaveEntry mocks base method.

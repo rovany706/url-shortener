@@ -130,13 +130,13 @@ func ParseArgs(programName string, args []string) (appConfig *AppConfig, err err
 		return nil, err
 	}
 
-	log.Printf("Parsed app config: %+v\n", appConfig)
-
 	if err := validateParsedArgs(appConfig); err != nil {
 		return nil, err
 	}
 
 	appConfig.StorageType = getStorageType(appConfig)
+
+	log.Printf("Parsed app config: %+v\n", appConfig)
 
 	return appConfig, nil
 }

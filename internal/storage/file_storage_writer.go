@@ -37,6 +37,16 @@ func (w *FileStorageWriter) WriteEntry(entry *StorageEntry) error {
 	return w.buffer.Flush()
 }
 
+func (w *FileStorageWriter) WriteEntries(entries []StorageEntry) error {
+	for _, entry := range entries {
+		if err := w.encoder.Encode(&entry); err != nil {
+			return err
+		}
+	}
+
+	return w.buffer.Flush()
+}
+
 func (w *FileStorageWriter) Close() error {
 	return w.file.Close()
 }

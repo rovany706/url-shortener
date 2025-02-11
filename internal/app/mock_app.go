@@ -22,7 +22,17 @@ func (shortener *MockURLShortener) GetShortID(ctx context.Context, fullURL strin
 	shortener.shortURLMap[shortID] = fullURL
 	shortener.counter++
 
-	return shortID, err
+	return shortID, nil
+}
+
+func (shortener *MockURLShortener) GetShortIDBatch(ctx context.Context, fullURLs []string) (shortIDs []string, err error) {
+	shortIDs = make([]string, 0)
+	for _, fullURL := range fullURLs {
+		shortID, _ := shortener.GetShortID(ctx, fullURL)
+		shortIDs = append(shortIDs, shortID)
+	}
+
+	return shortIDs, nil
 }
 
 func NewMockURLShortener(shortURLMap map[string]string) *MockURLShortener {
@@ -40,4 +50,8 @@ func (shortener *ErrMockURLShortener) GetFullURL(ctx context.Context, shortID st
 
 func (shortener *ErrMockURLShortener) GetShortID(ctx context.Context, fullURL string) (shortID string, err error) {
 	return "", errors.New("test error")
+}
+
+func (shortener *ErrMockURLShortener) GetShortIDBatch(ctx context.Context, fullURLs []string) (shortIDs []string, err error) {
+	return nil, errors.New("test error")
 }

@@ -65,7 +65,7 @@ func MakeShortURLHandlerJSON(app app.URLShortener, appConfig *config.AppConfig, 
 		}
 
 		response := models.ShortenResponse{
-			Result: appConfig.BaseURL + "/" + shortID,
+			Result: getShortURL(shortID, appConfig),
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -92,4 +92,54 @@ func PingHandler(repository repository.Repository, logger *zap.Logger) http.Hand
 
 		w.WriteHeader(http.StatusOK)
 	}
+}
+
+func MakeShortURLBatchHandler(app app.URLShortener, appConfig *config.AppConfig, logger *zap.Logger) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		decoder := json.NewDecoder(r.Body)
+		var request models.BatchShortenRequest
+
+		if err := decoder.Decode(&request); err != nil {
+			logger.Info("cannot decode request JSON body", zap.Error(err))
+			http.Error(w, "", http.StatusBadRequest)
+			return
+		}
+
+		fullURLs := make([]string, len(request))
+		for i, url := range request {
+			fullURLs[i] = url.OriginalURL
+		}
+
+		shortIDs, err := app.GetShortIDBatch(r.Context(), fullURLs)
+
+		if err != nil {
+			logger.Info("error creating short ids", zap.Error(err))
+			http.Error(w, "", http.StatusBadRequest)
+			return
+		}
+
+		responseEntries := make([]models.BatchShortenResponseEntry, len(request))
+		for i, shortID := range shortIDs {
+			entry := models.BatchShortenResponseEntry{
+				CorrelationID: request[i].CorrelationID,
+				ShortURL:      getShortURL(shortID, appConfig),
+			}
+
+			responseEntries[i] = entry
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+
+		encoder := json.NewEncoder(w)
+		if err := encoder.Encode(responseEntries); err != nil {
+			logger.Info("error encoding response", zap.Error(err))
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func getShortURL(shortID string, appConfig *config.AppConfig) string {
+	return appConfig.BaseURL + "/" + shortID
 }

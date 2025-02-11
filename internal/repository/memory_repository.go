@@ -29,10 +29,22 @@ func (r *MemoryRepository) SaveEntry(ctx context.Context, shortID string, fullUR
 	return nil
 }
 
-func (r *MemoryRepository) Close() {
-
+func (r *MemoryRepository) Close() error {
+	return nil
 }
 
 func (r *MemoryRepository) Ping(ctx context.Context) error {
 	return ErrPingNotSupported
+}
+
+func (r *MemoryRepository) SaveEntries(ctx context.Context, shortIDMap map[string]string) error {
+	for shortID, fullURL := range shortIDMap {
+		err := r.SaveEntry(ctx, shortID, fullURL)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

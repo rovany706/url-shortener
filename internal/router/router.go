@@ -19,8 +19,11 @@ func MainRouter(app app.URLShortener, appConfig *config.AppConfig, repository re
 	r.Route("/", func(r chi.Router) {
 		r.Get("/{id}", handlers.RedirectHandler(app))
 		r.Post("/", handlers.MakeShortURLHandler(app, appConfig))
-		r.Post("/api/shorten", handlers.MakeShortURLHandlerJSON(app, appConfig, logger))
 		r.Get("/ping", handlers.PingHandler(repository, logger))
+		r.Route("/api", func(r chi.Router) {
+			r.Post("/shorten", handlers.MakeShortURLHandlerJSON(app, appConfig, logger))
+			r.Post("/shorten/batch", handlers.MakeShortURLBatchHandler(app, appConfig, logger))
+		})
 	})
 
 	return r

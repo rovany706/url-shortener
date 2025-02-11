@@ -11,8 +11,9 @@ import (
 type Repository interface {
 	GetFullURL(ctx context.Context, shortID string) (fullURL string, ok bool)
 	SaveEntry(ctx context.Context, shortID string, fullURL string) error
+	SaveEntries(ctx context.Context, shortIDMap map[string]string) error
 	Ping(ctx context.Context) error
-	Close()
+	Close() error
 }
 
 var (
@@ -23,7 +24,7 @@ var (
 func NewAppRepository(ctx context.Context, appConfig *config.AppConfig) (Repository, error) {
 	switch appConfig.StorageType {
 	case config.Database:
-		return NewDBRepository(ctx, appConfig.DatabaseDSN)
+		return NewDatabaseRepository(ctx, appConfig.DatabaseDSN)
 	case config.File:
 		return NewFileRepository(afero.NewOsFs(), appConfig.FileStoragePath)
 	case config.None:

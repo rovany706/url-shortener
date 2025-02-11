@@ -70,10 +70,6 @@ func (repository *FileRepository) SaveEntry(ctx context.Context, shortID string,
 }
 
 func (repository *FileRepository) saveNewEntry(shortID string, fullURL string) error {
-	if repository.storageFilepath == "" {
-		return nil
-	}
-
 	storageWriter, err := storage.NewFileStorageWriter(repository.fs, repository.storageFilepath)
 
 	if err != nil {
@@ -90,8 +86,34 @@ func (repository *FileRepository) saveNewEntry(shortID string, fullURL string) e
 	return storageWriter.WriteEntry(&entry)
 }
 
-func (repository *FileRepository) Close() {
+func (repository *FileRepository) SaveEntries(ctx context.Context, shortIDMap map[string]string) error {
+	storageWriter, err := storage.NewFileStorageWriter(repository.fs, repository.storageFilepath)
 
+	if err != nil {
+		return err
+	}
+
+	defer storageWriter.Close()
+
+	entries := make([]storage.StorageEntry, 0)
+	for shortID, fullURL := range shortIDMap {
+		_, exists := repository.shortURLMap.LoadOrStore(shortID, fullURL)
+
+		if !exists {
+			entry := storage.StorageEntry{
+				ShortID: shortID,
+				FullURL: fullURL,
+			}
+
+			entries = append(entries, entry)
+		}
+	}
+
+	return storageWriter.WriteEntries(entries)
+}
+
+func (repository *FileRepository) Close() error {
+	return nil
 }
 
 func (repository *FileRepository) Ping(ctx context.Context) error {
