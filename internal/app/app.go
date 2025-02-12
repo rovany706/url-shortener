@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"crypto/sha1"
+	"errors"
 	"fmt"
 	"net/url"
 
@@ -44,7 +45,17 @@ func (app *URLShortenerApp) GetShortID(ctx context.Context, fullURL string) (sho
 	shortID = getShortSHA1Hash(fullURL, shortHashByteCount)
 
 	if err := app.repository.SaveEntry(ctx, shortID, fullURL); err != nil {
-		return "", err
+		if errors.Is(err, repository.ErrConflict) {
+			shortID, err = app.repository.GetShortID(ctx, fullURL)
+
+			if err != nil {
+				return "", err
+			}
+
+			return shortID, repository.ErrConflict
+		} else {
+			return "", err
+		}
 	}
 
 	return shortID, nil

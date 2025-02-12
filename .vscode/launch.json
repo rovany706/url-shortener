@@ -10,8 +10,8 @@
             "request": "launch",
             "mode": "debug",
             "program": "${workspaceFolder}/cmd/shortener",
-            //"args": ["-d", "postgresql://app:example@localhost:5432/shortenerdb"]
-            "args": ["-f", "storage.json"]
+            "args": ["-d", "postgresql://app:example@localhost:5432/shortenerdb"]
+            //"args": ["-f", "storage.json"]
         },
         {
             "name": "Launch Client",

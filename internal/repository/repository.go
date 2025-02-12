@@ -12,6 +12,7 @@ type Repository interface {
 	GetFullURL(ctx context.Context, shortID string) (fullURL string, ok bool)
 	SaveEntry(ctx context.Context, shortID string, fullURL string) error
 	SaveEntries(ctx context.Context, shortIDMap map[string]string) error
+	GetShortID(ctx context.Context, fullURL string) (shortID string, err error)
 	Ping(ctx context.Context) error
 	Close() error
 }
@@ -19,6 +20,7 @@ type Repository interface {
 var (
 	ErrUnknownStorageType = errors.New("unknown storage type")
 	ErrPingNotSupported   = errors.New("ping is not supported for this storage type")
+	ErrConflict           = errors.New("entry conflict")
 )
 
 func NewAppRepository(ctx context.Context, appConfig *config.AppConfig) (Repository, error) {

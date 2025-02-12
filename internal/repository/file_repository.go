@@ -119,3 +119,15 @@ func (repository *FileRepository) Close() error {
 func (repository *FileRepository) Ping(ctx context.Context) error {
 	return ErrPingNotSupported
 }
+
+func (repository *FileRepository) GetShortID(ctx context.Context, fullURL string) (shortID string, err error) {
+	repository.shortURLMap.Range(func(id, url any) bool {
+		if url.(string) == fullURL {
+			shortID = id.(string)
+			return false
+		}
+		return true
+	})
+
+	return
+}

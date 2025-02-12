@@ -14,8 +14,8 @@ const TableName = "short_links"
 var CreateTableSQL = fmt.Sprintf(
 	`CREATE TABLE %s (
 	id SERIAL PRIMARY KEY,
-	short_id varchar(8) UNIQUE,
-	full_url text)`,
+	short_id varchar(8),
+	full_url text UNIQUE)`,
 	TableName)
 
 type Database struct {

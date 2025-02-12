@@ -48,3 +48,15 @@ func (r *MemoryRepository) SaveEntries(ctx context.Context, shortIDMap map[strin
 
 	return nil
 }
+
+func (r *MemoryRepository) GetShortID(ctx context.Context, fullURL string) (shortID string, err error) {
+	r.shortURLMap.Range(func(id, url any) bool {
+		if url.(string) == fullURL {
+			shortID = id.(string)
+			return false
+		}
+		return true
+	})
+
+	return
+}

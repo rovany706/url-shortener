@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 
@@ -35,13 +36,18 @@ func MakeShortURLHandler(app app.URLShortener, appConfig *config.AppConfig) http
 
 		shortID, err := app.GetShortID(r.Context(), string(body))
 
+		statusCode := http.StatusCreated
 		if err != nil {
-			http.Error(w, "", http.StatusBadRequest)
-			return
+			if errors.Is(err, repository.ErrConflict) {
+				statusCode = http.StatusConflict
+			} else {
+				http.Error(w, "", http.StatusBadRequest)
+				return
+			}
 		}
 
 		w.Header().Add("Content-Type", "text/plain; charset=utf-8")
-		w.WriteHeader(http.StatusCreated)
+		w.WriteHeader(statusCode)
 		w.Write([]byte(appConfig.BaseURL + "/" + shortID))
 	}
 }
@@ -59,17 +65,21 @@ func MakeShortURLHandlerJSON(app app.URLShortener, appConfig *config.AppConfig, 
 
 		shortID, err := app.GetShortID(r.Context(), request.URL)
 
+		statusCode := http.StatusCreated
 		if err != nil {
-			http.Error(w, "", http.StatusBadRequest)
-			return
+			if errors.Is(err, repository.ErrConflict) {
+				statusCode = http.StatusConflict
+			} else {
+				http.Error(w, "", http.StatusBadRequest)
+				return
+			}
 		}
-
 		response := models.ShortenResponse{
 			Result: getShortURL(shortID, appConfig),
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
+		w.WriteHeader(statusCode)
 
 		encoder := json.NewEncoder(w)
 		if err := encoder.Encode(response); err != nil {

@@ -69,6 +69,21 @@ func (mr *MockRepositoryMockRecorder) GetFullURL(ctx, shortID any) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFullURL", reflect.TypeOf((*MockRepository)(nil).GetFullURL), ctx, shortID)
 }
 
+// GetShortID mocks base method.
+func (m *MockRepository) GetShortID(ctx context.Context, fullURL string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetShortID", ctx, fullURL)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetShortID indicates an expected call of GetShortID.
+func (mr *MockRepositoryMockRecorder) GetShortID(ctx, fullURL any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetShortID", reflect.TypeOf((*MockRepository)(nil).GetShortID), ctx, fullURL)
+}
+
 // Ping mocks base method.
 func (m *MockRepository) Ping(ctx context.Context) error {
 	m.ctrl.T.Helper()
