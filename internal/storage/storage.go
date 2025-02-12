@@ -9,6 +9,7 @@ type StorageEntry struct {
 
 type StorageWriter interface {
 	WriteEntry(entry *StorageEntry) error
+	WriteEntries(entries []StorageEntry) error
 	Close() error
 }
 

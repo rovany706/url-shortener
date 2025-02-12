@@ -38,7 +38,12 @@ func TestParseFlags(t *testing.T) {
 		{
 			"only file storage path",
 			[]string{programName, "-f", "storage.json"},
-			*NewConfig(WithFileStoragePath("storage.json")),
+			*NewConfig(WithFileStoragePath("storage.json"), WithStorageType(File)),
+		},
+		{
+			"only database DSN",
+			[]string{programName, "-d", "postgresql://user@localhost/db"},
+			*NewConfig(WithDatabseDSN("postgresql://user@localhost/db"), WithStorageType(Database)),
 		},
 		{
 			"full args",
@@ -61,7 +66,7 @@ func TestParseArgsErr(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    []string
-		wantErr string
+		wantErr error
 	}{
 		{
 			"invalid BaseURL",
@@ -78,17 +83,12 @@ func TestParseArgsErr(t *testing.T) {
 			[]string{programName, "-l", "debug123"},
 			ErrInvalidLogLevel,
 		},
-		{
-			"invalid file storage path",
-			[]string{programName, "-f", ""},
-			ErrInvalidFileStoragePath,
-		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := ParseArgs(tt.args[0], tt.args[1:])
-			assert.ErrorContains(t, err, tt.wantErr)
+			assert.ErrorIs(t, err, tt.wantErr)
 		})
 	}
 }

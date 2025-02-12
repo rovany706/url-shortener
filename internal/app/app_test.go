@@ -1,11 +1,13 @@
 package app
 
 import (
+	"context"
 	"testing"
 
-	"github.com/rovany706/url-shortener/internal/repository"
+	"github.com/rovany706/url-shortener/internal/repository/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
 func TestGetFullURL(t *testing.T) {
@@ -36,12 +38,18 @@ func TestGetFullURL(t *testing.T) {
 		},
 	}
 
+	ctx := context.Background()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repository := repository.NewMockRepository(tt.existingLinks)
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			repository := mock.NewMockRepository(ctrl)
+			repository.EXPECT().GetFullURL(gomock.Any(), tt.shortID).Return(tt.wantFullURL, tt.wantOk).AnyTimes()
+
 			app := NewURLShortenerApp(repository)
 
-			fullLink, ok := app.GetFullURL(tt.shortID)
+			fullLink, ok := app.GetFullURL(ctx, tt.shortID)
 
 			if tt.wantOk {
 				assert.True(t, ok)
@@ -81,11 +89,17 @@ func TestGetShortID(t *testing.T) {
 		},
 	}
 
+	ctx := context.Background()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repository := repository.NewMockRepository(map[string]string{})
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			repository := mock.NewMockRepository(ctrl)
+			repository.EXPECT().SaveEntry(gomock.Any(), gomock.Any(), tt.fullURL).Return(nil).AnyTimes()
+
 			app := NewURLShortenerApp(repository)
-			shortID, err := app.GetShortID(tt.fullURL)
+			shortID, err := app.GetShortID(ctx, tt.fullURL)
 
 			if !tt.wantErr {
 				require.NoError(t, err)

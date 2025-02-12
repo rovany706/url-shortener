@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"os"
 	"testing"
 
@@ -45,6 +46,7 @@ func TestGetFullURL(t *testing.T) {
 		},
 	}
 
+	ctx := context.Background()
 	testStoragePath := "/home/test/storage.json"
 	fs := afero.NewMemMapFs()
 	fs.MkdirAll("/home/test", 0755)
@@ -52,10 +54,10 @@ func TestGetFullURL(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repository, err := NewAppRepository(fs, testStoragePath)
+			repository, err := NewFileRepository(fs, testStoragePath)
 			require.NoError(t, err)
 
-			fullURL, ok := repository.GetFullURL(tt.shortID)
+			fullURL, ok := repository.GetFullURL(ctx, tt.shortID)
 
 			assert.Equal(t, tt.want.fullURL, fullURL)
 			assert.Equal(t, tt.want.ok, ok)
@@ -84,6 +86,8 @@ func TestSaveEntry(t *testing.T) {
 		},
 	}
 
+	ctx := context.Background()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fs := afero.NewMemMapFs()
@@ -94,10 +98,10 @@ func TestSaveEntry(t *testing.T) {
 			require.NoError(t, err)
 			testDataFileSize := fi.Size()
 
-			repository, err := NewAppRepository(fs, testStoragePath)
+			repository, err := NewFileRepository(fs, testStoragePath)
 			require.NoError(t, err)
 
-			err = repository.SaveEntry(tt.shortID, tt.fullURL)
+			err = repository.SaveEntry(ctx, tt.shortID, tt.fullURL)
 			require.NoError(t, err)
 
 			fi, err = fs.Stat(testStoragePath)
