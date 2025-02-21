@@ -45,7 +45,8 @@ func (app *URLShortenerApp) GetShortID(ctx context.Context, fullURL string) (sho
 	shortID = getShortSHA1Hash(fullURL, shortHashByteCount)
 
 	if err := app.repository.SaveEntry(ctx, shortID, fullURL); err != nil {
-		if errors.Is(err, repository.ErrConflict) {
+		switch {
+		case errors.Is(err, repository.ErrConflict):
 			shortID, err = app.repository.GetShortID(ctx, fullURL)
 
 			if err != nil {
@@ -53,7 +54,7 @@ func (app *URLShortenerApp) GetShortID(ctx context.Context, fullURL string) (sho
 			}
 
 			return shortID, repository.ErrConflict
-		} else {
+		default:
 			return "", err
 		}
 	}
