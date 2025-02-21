@@ -6,24 +6,12 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/rovany706/url-shortener/internal/app"
 	"github.com/rovany706/url-shortener/internal/config"
 	"github.com/rovany706/url-shortener/internal/models"
 	"github.com/rovany706/url-shortener/internal/repository"
 	"go.uber.org/zap"
 )
-
-func RedirectHandler(app app.URLShortener) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		shortID := chi.URLParam(r, "id")
-		if fullURL, ok := app.GetFullURL(r.Context(), shortID); ok {
-			http.Redirect(w, r, fullURL, http.StatusTemporaryRedirect)
-		} else {
-			http.Error(w, "400 Bad Request", http.StatusBadRequest)
-		}
-	}
-}
 
 func MakeShortURLHandler(app app.URLShortener, appConfig *config.AppConfig) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -48,7 +36,7 @@ func MakeShortURLHandler(app app.URLShortener, appConfig *config.AppConfig) http
 
 		w.Header().Add("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(statusCode)
-		w.Write([]byte(appConfig.BaseURL + "/" + shortID))
+		w.Write([]byte(getShortURL(shortID, appConfig)))
 	}
 }
 
@@ -87,20 +75,6 @@ func MakeShortURLHandlerJSON(app app.URLShortener, appConfig *config.AppConfig, 
 			http.Error(w, "", http.StatusInternalServerError)
 			return
 		}
-	}
-}
-
-func PingHandler(repository repository.Repository, logger *zap.Logger) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		err := repository.Ping(r.Context())
-
-		if err != nil {
-			logger.Info("unable to ping repository data source", zap.Error(err))
-			http.Error(w, "", http.StatusInternalServerError)
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
 	}
 }
 

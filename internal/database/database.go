@@ -35,7 +35,7 @@ func InitConnection(ctx context.Context, connString string) (*Database, error) {
 }
 
 func (db *Database) EnsureCreated(ctx context.Context) error {
-	ok, err := db.tableExists(ctx, "short_links")
+	ok, err := db.tableExists(ctx, TableName)
 	if err != nil {
 		return err
 	}

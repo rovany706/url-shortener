@@ -117,3 +117,123 @@ func TestSaveEntry(t *testing.T) {
 		})
 	}
 }
+
+func TestSaveEntries(t *testing.T) {
+	tests := []struct {
+		name             string
+		newEntries       map[string]string
+		wantWriteNewData bool
+	}{
+		{
+			name: "write new data",
+			newEntries: map[string]string{
+				"1": "https://ya.ru",
+				"2": "https://google.com",
+			},
+			wantWriteNewData: true,
+		},
+		{
+			name: "no new data (existing shortIDs)",
+			newEntries: map[string]string{
+				"89dce6a4": "https://ya.ru",
+				"ec2c0086": "https://google.com",
+			},
+			wantWriteNewData: false,
+		},
+	}
+
+	ctx := context.Background()
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fs := afero.NewMemMapFs()
+			fs.MkdirAll("/home/test", 0755)
+			testStoragePath := "/home/test/storage.json"
+			loadTestData(t, fs, "testdata/test_storage.json", testStoragePath)
+			fi, err := fs.Stat(testStoragePath)
+			require.NoError(t, err)
+			testDataFileSize := fi.Size()
+
+			repository, err := NewFileRepository(fs, testStoragePath)
+			require.NoError(t, err)
+
+			err = repository.SaveEntries(ctx, tt.newEntries)
+			require.NoError(t, err)
+
+			fi, err = fs.Stat(testStoragePath)
+			require.NoError(t, err)
+			newFileSize := fi.Size()
+
+			if tt.wantWriteNewData {
+				assert.Less(t, testDataFileSize, newFileSize)
+				return
+			}
+
+			assert.Equal(t, testDataFileSize, newFileSize)
+		})
+	}
+}
+
+func TestPing(t *testing.T) {
+	ctx := context.Background()
+	fs := afero.NewMemMapFs()
+	fs.MkdirAll("/home/test", 0755)
+	testStoragePath := "/home/test/storage.json"
+	loadTestData(t, fs, "testdata/test_storage.json", testStoragePath)
+
+	repository, err := NewFileRepository(fs, testStoragePath)
+	require.NoError(t, err)
+
+	err = repository.Ping(ctx)
+	assert.ErrorIs(t, err, ErrPingNotSupported)
+}
+
+func TestClose(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	fs.MkdirAll("/home/test", 0755)
+	testStoragePath := "/home/test/storage.json"
+	loadTestData(t, fs, "testdata/test_storage.json", testStoragePath)
+
+	repository, err := NewFileRepository(fs, testStoragePath)
+	require.NoError(t, err)
+
+	err = repository.Close()
+	assert.NoError(t, err)
+}
+
+func TestGetShortID(t *testing.T) {
+	tests := []struct {
+		name        string
+		fullURL     string
+		wantShortID string
+	}{
+		{
+			name:        "existing full URL",
+			fullURL:     "http://example.com",
+			wantShortID: "89dce6a4",
+		},
+		{
+			name:        "non existing full URL",
+			fullURL:     "https://ya.ru",
+			wantShortID: "",
+		},
+	}
+
+	ctx := context.Background()
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fs := afero.NewMemMapFs()
+			fs.MkdirAll("/home/test", 0755)
+			testStoragePath := "/home/test/storage.json"
+			loadTestData(t, fs, "testdata/test_storage.json", testStoragePath)
+
+			repository, err := NewFileRepository(fs, testStoragePath)
+			require.NoError(t, err)
+
+			shortID, err := repository.GetShortID(ctx, tt.fullURL)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantShortID, shortID)
+		})
+	}
+}

@@ -35,3 +35,27 @@ func TestWriteEntry(t *testing.T) {
 	require.NoError(t, err)
 	require.Greater(t, fi.Size(), int64(0))
 }
+
+func TestWriteEntries(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	filePath := "home/test/storage.json"
+	writer, err := NewFileStorageWriter(fs, filePath)
+	require.NoError(t, err)
+
+	entries := []StorageEntry{
+		{
+			ShortID: "1",
+			FullURL: "http://example.com",
+		},
+		{
+			ShortID: "2",
+			FullURL: "http://example1.com",
+		},
+	}
+	err = writer.WriteEntries(entries)
+	require.NoError(t, err)
+
+	fi, err := fs.Stat(filePath)
+	require.NoError(t, err)
+	require.Greater(t, fi.Size(), int64(0))
+}

@@ -134,6 +134,20 @@ func TestMainRouter(t *testing.T) {
 			body:         "",
 			expectedCode: http.StatusMethodNotAllowed,
 		},
+		{
+			name:         "POST /shorten/batch test",
+			request:      "/api/shorten/batch",
+			method:       http.MethodPost,
+			body:         `[{"correlation_id": "d9200816-793a-469c-bf04-976754db63ca","original_url": "https://example.com"}]`,
+			expectedCode: http.StatusCreated,
+		},
+		{
+			name:         "GET /shorten/batch test",
+			request:      "/api/shorten/batch",
+			method:       http.MethodGet,
+			body:         "",
+			expectedCode: http.StatusMethodNotAllowed,
+		},
 	}
 
 	for _, tt := range tests {
