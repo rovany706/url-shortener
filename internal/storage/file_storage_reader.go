@@ -13,7 +13,7 @@ type FileStorageReader struct {
 }
 
 func NewFileStorageReader(fs afero.Fs, filename string) (*FileStorageReader, error) {
-	file, err := fs.OpenFile(filename, os.O_RDONLY|os.O_CREATE, 0666)
+	file, err := fs.OpenFile(filename, os.O_RDONLY|os.O_CREATE, os.ModeType)
 	if err != nil {
 		return nil, err
 	}

@@ -22,3 +22,5 @@ vendor/
 .idea
 
 cmd/shortener/storage.json
+
+pgdata/

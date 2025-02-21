@@ -12,16 +12,26 @@ import (
 	"go.uber.org/zap"
 )
 
-const (
-	ErrInvalidBaseURL         = "invalid base URL"
-	ErrInvalidAppRunAddress   = "invalid address and port to run server"
-	ErrInvalidLogLevel        = "invalid log level"
-	ErrInvalidFileStoragePath = "invalid file storage path"
+var (
+	ErrInvalidBaseURL       = errors.New("invalid base URL")
+	ErrInvalidAppRunAddress = errors.New("invalid address and port to run server")
+	ErrInvalidLogLevel      = errors.New("invalid log level")
+)
 
+const (
 	defaultBaseURL         = "http://localhost:8080"
 	defaultAppRunAddress   = ":8080"
 	defaultLogLevel        = "info"
-	defaultFileStoragePath = "storage.json"
+	defaultFileStoragePath = ""
+	defaultDatabaseDSN     = ""
+)
+
+type StorageType int
+
+const (
+	None StorageType = iota
+	File
+	Database
 )
 
 type AppConfig struct {
@@ -29,6 +39,8 @@ type AppConfig struct {
 	AppRunAddress   string `env:"SERVER_ADDRESS"`
 	LogLevel        string `env:"LOG_LEVEL"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
+	DatabaseDSN     string `env:"DATABSE_DSN"`
+	StorageType     StorageType
 }
 
 type Option func(*AppConfig)
@@ -65,12 +77,27 @@ func WithFileStoragePath(fileStoragePath string) Option {
 	}
 }
 
+func WithDatabseDSN(databaseDSN string) Option {
+	return func(c *AppConfig) {
+		if databaseDSN != "" {
+			c.DatabaseDSN = databaseDSN
+		}
+	}
+}
+
+func WithStorageType(storageType StorageType) Option {
+	return func(c *AppConfig) {
+		c.StorageType = storageType
+	}
+}
+
 func NewConfig(opts ...Option) *AppConfig {
 	cfg := &AppConfig{
 		BaseURL:         defaultBaseURL,
 		AppRunAddress:   defaultAppRunAddress,
 		LogLevel:        defaultLogLevel,
 		FileStoragePath: defaultFileStoragePath,
+		DatabaseDSN:     defaultDatabaseDSN,
 	}
 
 	for _, opt := range opts {
@@ -88,7 +115,8 @@ func ParseArgs(programName string, args []string) (appConfig *AppConfig, err err
 	flags.StringVar(&appConfig.AppRunAddress, "a", defaultAppRunAddress, fmt.Sprintf("address and port to run server (default: %s)", defaultAppRunAddress))
 	flags.StringVar(&appConfig.BaseURL, "b", defaultBaseURL, fmt.Sprintf("base URL for short links (default: %s)", defaultBaseURL))
 	flags.StringVar(&appConfig.LogLevel, "l", defaultLogLevel, fmt.Sprintf("log level (default: %s)", defaultLogLevel))
-	flags.StringVar(&appConfig.FileStoragePath, "f", defaultFileStoragePath, fmt.Sprintf("file storage path (default %s)", defaultFileStoragePath))
+	flags.StringVar(&appConfig.FileStoragePath, "f", defaultFileStoragePath, "file storage path")
+	flags.StringVar(&appConfig.DatabaseDSN, "d", defaultDatabaseDSN, "database DSN")
 
 	err = flags.Parse(args)
 
@@ -102,30 +130,28 @@ func ParseArgs(programName string, args []string) (appConfig *AppConfig, err err
 		return nil, err
 	}
 
-	log.Printf("Parsed app config: %+v\n", appConfig)
-
 	if err := validateParsedArgs(appConfig); err != nil {
 		return nil, err
 	}
+
+	appConfig.StorageType = getStorageType(appConfig)
+
+	log.Printf("Parsed app config: %+v\n", appConfig)
 
 	return appConfig, nil
 }
 
 func validateParsedArgs(appConfig *AppConfig) error {
 	if ok := isURL(appConfig.BaseURL); !ok {
-		return errors.New(ErrInvalidBaseURL)
+		return ErrInvalidBaseURL
 	}
 
 	if _, err := net.ResolveTCPAddr("tcp", appConfig.AppRunAddress); err != nil {
-		return errors.New(ErrInvalidAppRunAddress)
+		return ErrInvalidAppRunAddress
 	}
 
 	if _, err := zap.ParseAtomicLevel(appConfig.LogLevel); err != nil {
-		return errors.New(ErrInvalidLogLevel)
-	}
-
-	if appConfig.FileStoragePath == "" {
-		return errors.New(ErrInvalidFileStoragePath)
+		return ErrInvalidLogLevel
 	}
 
 	return nil
@@ -134,4 +160,14 @@ func validateParsedArgs(appConfig *AppConfig) error {
 func isURL(str string) bool {
 	u, err := url.Parse(str)
 	return err == nil && u.Scheme != "" && u.Host != ""
+}
+
+func getStorageType(appConfig *AppConfig) StorageType {
+	if appConfig.DatabaseDSN != "" {
+		return Database
+	} else if appConfig.FileStoragePath != "" {
+		return File
+	}
+
+	return None
 }

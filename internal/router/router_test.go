@@ -10,8 +10,10 @@ import (
 
 	"github.com/rovany706/url-shortener/internal/app"
 	"github.com/rovany706/url-shortener/internal/config"
+	"github.com/rovany706/url-shortener/internal/repository/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
 )
@@ -118,15 +120,47 @@ func TestMainRouter(t *testing.T) {
 			body:         "",
 			expectedCode: http.StatusMethodNotAllowed,
 		},
+		{
+			name:         "GET /ping test",
+			request:      "/ping",
+			method:       http.MethodGet,
+			body:         "",
+			expectedCode: http.StatusOK,
+		},
+		{
+			name:         "POST /ping test",
+			request:      "/ping",
+			method:       http.MethodPost,
+			body:         "",
+			expectedCode: http.StatusMethodNotAllowed,
+		},
+		{
+			name:         "POST /shorten/batch test",
+			request:      "/api/shorten/batch",
+			method:       http.MethodPost,
+			body:         `[{"correlation_id": "d9200816-793a-469c-bf04-976754db63ca","original_url": "https://example.com"}]`,
+			expectedCode: http.StatusCreated,
+		},
+		{
+			name:         "GET /shorten/batch test",
+			request:      "/api/shorten/batch",
+			method:       http.MethodGet,
+			body:         "",
+			expectedCode: http.StatusMethodNotAllowed,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			repository := mock.NewMockRepository(ctrl)
+			repository.EXPECT().Ping(gomock.Any()).Return(nil).AnyTimes()
 			obs, logs := observer.New(zap.InfoLevel)
 			logger := zap.New(obs)
 			shortener := app.NewMockURLShortener(shortURLMap)
 
-			r := MainRouter(shortener, appConfig, logger)
+			r := MainRouter(shortener, appConfig, repository, logger)
 			ts := httptest.NewServer(r)
 			defer ts.Close()
 
