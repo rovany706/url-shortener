@@ -13,23 +13,32 @@ import (
 
 func GetUserURLs(authentication auth.JWTAuthentication, repository repository.Repository, appConfig *config.AppConfig, logger *zap.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		authCookie, err := r.Cookie(auth.AuthCookieName)
+		userID, err := getUserIDFromRequest(r.Context(), authentication, repository, r)
 
 		if err != nil {
-			logger.Info("error finding cookie", zap.Error(err))
+			http.Error(w, "", http.StatusBadRequest)
+			return
+		}
+
+		if userID < 1 {
+			logger.Info("user id is invalid")
 			http.Error(w, "", http.StatusUnauthorized)
 			return
 		}
 
-		claims, err := authentication.GetClaimsFromToken(authCookie.Value)
-
+		token, err := authentication.CreateToken(userID)
 		if err != nil {
-			logger.Info("error parsing claims", zap.Error(err))
-			http.Error(w, "", http.StatusUnauthorized)
+			logger.Info("error creating token", zap.Error(err))
+			http.Error(w, "", http.StatusBadRequest)
 			return
 		}
 
-		shortIDMap, err := repository.GetUserEntries(r.Context(), claims.UserID)
+		http.SetCookie(w, &http.Cookie{
+			Name:  auth.AuthCookieName,
+			Value: token,
+		})
+
+		shortIDMap, err := repository.GetUserEntries(r.Context(), userID)
 
 		if err != nil {
 			logger.Info("error getting user urls", zap.Error(err))
