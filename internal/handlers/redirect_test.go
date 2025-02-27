@@ -8,9 +8,12 @@ import (
 	"testing"
 
 	"github.com/rovany706/url-shortener/internal/app"
+	"github.com/rovany706/url-shortener/internal/auth"
 	"github.com/rovany706/url-shortener/internal/config"
+	"github.com/rovany706/url-shortener/internal/repository/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -59,10 +62,18 @@ func TestMakeShortURLHandler(t *testing.T) {
 				shortener = app.NewMockURLShortener(map[string]string{})
 			}
 
+			auth, err := auth.NewAppJWTAuthentication(nil)
+			require.NoError(t, err)
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			repository := mock.NewMockRepository(ctrl)
+			repository.EXPECT().GetNewUserID(gomock.Any()).Return(1, nil)
+
 			request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tt.body))
 			w := httptest.NewRecorder()
 
-			MakeShortURLHandler(shortener, appConfig)(w, request)
+			MakeShortURLHandler(shortener, auth, repository, appConfig)(w, request)
 			response := w.Result()
 
 			defer response.Body.Close()
@@ -151,11 +162,18 @@ func TestMakeShortURLHandlerJSON(t *testing.T) {
 			} else {
 				shortener = app.NewMockURLShortener(map[string]string{})
 			}
+			auth, err := auth.NewAppJWTAuthentication(nil)
+			require.NoError(t, err)
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			repository := mock.NewMockRepository(ctrl)
+			repository.EXPECT().GetNewUserID(gomock.Any()).Return(1, nil)
 
 			request := httptest.NewRequest(http.MethodPost, "/api/shorten", strings.NewReader(tt.body))
 			w := httptest.NewRecorder()
 
-			MakeShortURLHandlerJSON(shortener, appConfig, testLogger)(w, request)
+			MakeShortURLHandlerJSON(shortener, appConfig, auth, repository, testLogger)(w, request)
 			response := w.Result()
 
 			defer response.Body.Close()

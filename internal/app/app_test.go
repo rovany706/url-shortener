@@ -96,10 +96,10 @@ func TestGetShortID(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 			repository := mock.NewMockRepository(ctrl)
-			repository.EXPECT().SaveEntry(gomock.Any(), gomock.Any(), tt.fullURL).Return(nil).AnyTimes()
+			repository.EXPECT().SaveEntry(gomock.Any(), gomock.Any(), gomock.Any(), tt.fullURL).Return(nil).AnyTimes()
 
 			app := NewURLShortenerApp(repository)
-			shortID, err := app.GetShortID(ctx, tt.fullURL)
+			shortID, err := app.GetShortID(ctx, 1, tt.fullURL)
 
 			if !tt.wantErr {
 				require.NoError(t, err)

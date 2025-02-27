@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/rovany706/url-shortener/internal/app"
+	"github.com/rovany706/url-shortener/internal/auth"
 	"github.com/rovany706/url-shortener/internal/config"
 	"github.com/rovany706/url-shortener/internal/logger"
 	"github.com/rovany706/url-shortener/internal/repository"
@@ -29,7 +30,7 @@ func main() {
 	}
 
 	if err = run(appConfig, logger); err != nil {
-		panic(err)
+		logger.Fatal("error when running server", zap.Error(err))
 	}
 }
 
@@ -37,12 +38,18 @@ func run(appConfig *config.AppConfig, logger *zap.Logger) error {
 	repository, err := repository.NewAppRepository(context.Background(), appConfig)
 
 	if err != nil {
-		panic(err)
+		logger.Fatal("failed to create repository", zap.Error(err))
+	}
+
+	auth, err := auth.NewAppJWTAuthentication(nil)
+
+	if err != nil {
+		logger.Fatal("failed to create authentication", zap.Error(err))
 	}
 
 	app := app.NewURLShortenerApp(repository)
 
 	defer repository.Close()
 
-	return server.RunServer(app, appConfig, repository, logger)
+	return server.RunServer(app, appConfig, auth, repository, logger)
 }

@@ -1,20 +1,29 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
 
 	"github.com/rovany706/url-shortener/internal/app"
+	"github.com/rovany706/url-shortener/internal/auth"
 	"github.com/rovany706/url-shortener/internal/config"
 	"github.com/rovany706/url-shortener/internal/models"
 	"github.com/rovany706/url-shortener/internal/repository"
 	"go.uber.org/zap"
 )
 
-func MakeShortURLHandler(app app.URLShortener, appConfig *config.AppConfig) http.HandlerFunc {
+func MakeShortURLHandler(app app.URLShortener, authentication auth.JWTAuthentication, repo repository.Repository, appConfig *config.AppConfig) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		userID, err := getUserIDFromRequest(r.Context(), authentication, repo, r)
+
+		if err != nil {
+			http.Error(w, "", http.StatusBadRequest)
+			return
+		}
+
 		body, err := io.ReadAll(r.Body)
 
 		if err != nil {
@@ -22,7 +31,7 @@ func MakeShortURLHandler(app app.URLShortener, appConfig *config.AppConfig) http
 			return
 		}
 
-		shortID, err := app.GetShortID(r.Context(), string(body))
+		shortID, err := app.GetShortID(r.Context(), userID, string(body))
 
 		statusCode := http.StatusCreated
 		if err != nil {
@@ -34,14 +43,31 @@ func MakeShortURLHandler(app app.URLShortener, appConfig *config.AppConfig) http
 			}
 		}
 
+		token, err := authentication.CreateToken(userID)
+		if err != nil {
+			http.Error(w, "", http.StatusBadRequest)
+			return
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:  auth.AuthCookieName,
+			Value: token,
+		})
 		w.Header().Add("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(statusCode)
 		w.Write([]byte(getShortURL(shortID, appConfig)))
 	}
 }
 
-func MakeShortURLHandlerJSON(app app.URLShortener, appConfig *config.AppConfig, logger *zap.Logger) http.HandlerFunc {
+func MakeShortURLHandlerJSON(app app.URLShortener, appConfig *config.AppConfig, authentication auth.JWTAuthentication, repo repository.Repository, logger *zap.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		userID, err := getUserIDFromRequest(r.Context(), authentication, repo, r)
+
+		if err != nil {
+			http.Error(w, "", http.StatusBadRequest)
+			return
+		}
+
 		decoder := json.NewDecoder(r.Body)
 		var request models.ShortenRequest
 
@@ -51,7 +77,7 @@ func MakeShortURLHandlerJSON(app app.URLShortener, appConfig *config.AppConfig, 
 			return
 		}
 
-		shortID, err := app.GetShortID(r.Context(), request.URL)
+		shortID, err := app.GetShortID(r.Context(), userID, request.URL)
 
 		statusCode := http.StatusCreated
 		if err != nil {
@@ -66,6 +92,17 @@ func MakeShortURLHandlerJSON(app app.URLShortener, appConfig *config.AppConfig, 
 			Result: getShortURL(shortID, appConfig),
 		}
 
+		token, err := authentication.CreateToken(userID)
+		if err != nil {
+			logger.Info("error creating token", zap.Error(err))
+			http.Error(w, "", http.StatusBadRequest)
+			return
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:  auth.AuthCookieName,
+			Value: token,
+		})
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(statusCode)
 
@@ -78,8 +115,15 @@ func MakeShortURLHandlerJSON(app app.URLShortener, appConfig *config.AppConfig, 
 	}
 }
 
-func MakeShortURLBatchHandler(app app.URLShortener, appConfig *config.AppConfig, logger *zap.Logger) http.HandlerFunc {
+func MakeShortURLBatchHandler(app app.URLShortener, appConfig *config.AppConfig, authentication auth.JWTAuthentication, repository repository.Repository, logger *zap.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		userID, err := getUserIDFromRequest(r.Context(), authentication, repository, r)
+
+		if err != nil {
+			http.Error(w, "", http.StatusBadRequest)
+			return
+		}
+
 		decoder := json.NewDecoder(r.Body)
 		var request models.BatchShortenRequest
 
@@ -94,7 +138,7 @@ func MakeShortURLBatchHandler(app app.URLShortener, appConfig *config.AppConfig,
 			fullURLs[i] = url.OriginalURL
 		}
 
-		shortIDs, err := app.GetShortIDBatch(r.Context(), fullURLs)
+		shortIDs, err := app.GetShortIDBatch(r.Context(), userID, fullURLs)
 
 		if err != nil {
 			logger.Info("error creating short ids", zap.Error(err))
@@ -112,6 +156,17 @@ func MakeShortURLBatchHandler(app app.URLShortener, appConfig *config.AppConfig,
 			responseEntries[i] = entry
 		}
 
+		token, err := authentication.CreateToken(userID)
+		if err != nil {
+			logger.Info("error creating token", zap.Error(err))
+			http.Error(w, "", http.StatusBadRequest)
+			return
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:  auth.AuthCookieName,
+			Value: token,
+		})
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 
@@ -126,4 +181,30 @@ func MakeShortURLBatchHandler(app app.URLShortener, appConfig *config.AppConfig,
 
 func getShortURL(shortID string, appConfig *config.AppConfig) string {
 	return appConfig.BaseURL + "/" + shortID
+}
+
+func getUserIDFromRequest(ctx context.Context, authentication auth.JWTAuthentication, repository repository.Repository, r *http.Request) (int, error) {
+	authCookie, err := r.Cookie(auth.AuthCookieName)
+
+	if err != nil {
+		return getNewUserID(ctx, repository)
+	}
+
+	claims, err := authentication.GetClaimsFromToken(authCookie.Value)
+
+	if err != nil {
+		return getNewUserID(ctx, repository)
+	}
+
+	return claims.UserID, nil
+}
+
+func getNewUserID(ctx context.Context, repository repository.Repository) (int, error) {
+	newUserID, err := repository.GetNewUserID(ctx)
+
+	if err != nil {
+		return -1, err
+	}
+
+	return newUserID, nil
 }

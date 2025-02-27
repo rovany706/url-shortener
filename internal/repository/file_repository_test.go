@@ -101,7 +101,7 @@ func TestSaveEntry(t *testing.T) {
 			repository, err := NewFileRepository(fs, testStoragePath)
 			require.NoError(t, err)
 
-			err = repository.SaveEntry(ctx, tt.shortID, tt.fullURL)
+			err = repository.SaveEntry(ctx, 1, tt.shortID, tt.fullURL)
 			require.NoError(t, err)
 
 			fi, err = fs.Stat(testStoragePath)
@@ -157,7 +157,7 @@ func TestSaveEntries(t *testing.T) {
 			repository, err := NewFileRepository(fs, testStoragePath)
 			require.NoError(t, err)
 
-			err = repository.SaveEntries(ctx, tt.newEntries)
+			err = repository.SaveEntries(ctx, 1, tt.newEntries)
 			require.NoError(t, err)
 
 			fi, err = fs.Stat(testStoragePath)

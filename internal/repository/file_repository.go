@@ -59,7 +59,7 @@ func (repository *FileRepository) GetFullURL(ctx context.Context, shortID string
 }
 
 // Метод SaveEntry сохраняет в хранилище информацию о сокращенной ссылке
-func (repository *FileRepository) SaveEntry(ctx context.Context, shortID string, fullURL string) error {
+func (repository *FileRepository) SaveEntry(ctx context.Context, userID int, shortID string, fullURL string) error {
 	_, exists := repository.shortURLMap.LoadOrStore(shortID, fullURL)
 
 	if !exists {
@@ -86,7 +86,7 @@ func (repository *FileRepository) saveNewEntry(shortID string, fullURL string) e
 	return storageWriter.WriteEntry(&entry)
 }
 
-func (repository *FileRepository) SaveEntries(ctx context.Context, shortIDMap map[string]string) error {
+func (repository *FileRepository) SaveEntries(ctx context.Context, userID int, shortIDMap ShortIDMap) error {
 	storageWriter, err := storage.NewFileStorageWriter(repository.fs, repository.storageFilepath)
 
 	if err != nil {
@@ -130,4 +130,12 @@ func (repository *FileRepository) GetShortID(ctx context.Context, fullURL string
 	})
 
 	return
+}
+
+func (repository *FileRepository) GetUserEntries(ctx context.Context, userID int) (shortIDMap ShortIDMap, err error) {
+	return nil, ErrNotImplemented
+}
+
+func (repository *FileRepository) GetNewUserID(ctx context.Context) (userID int, err error) {
+	return -1, ErrNotImplemented
 }

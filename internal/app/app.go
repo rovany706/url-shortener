@@ -14,8 +14,8 @@ const shortHashByteCount = 4
 
 type URLShortener interface {
 	GetFullURL(ctx context.Context, shortID string) (fullURL string, ok bool)
-	GetShortID(ctx context.Context, fullURL string) (shortID string, err error)
-	GetShortIDBatch(ctx context.Context, fullURLs []string) (shortIDs []string, err error)
+	GetShortID(ctx context.Context, userID int, fullURL string) (shortID string, err error)
+	GetShortIDBatch(ctx context.Context, userID int, fullURLs []string) (shortIDs []string, err error)
 }
 
 type URLShortenerApp struct {
@@ -37,14 +37,14 @@ func (app *URLShortenerApp) GetFullURL(ctx context.Context, shortID string) (ful
 }
 
 // Метод GetShortID возвращает первые 4 байта sha1-хеша ссылки в виде строки.
-func (app *URLShortenerApp) GetShortID(ctx context.Context, fullURL string) (shortID string, err error) {
+func (app *URLShortenerApp) GetShortID(ctx context.Context, userID int, fullURL string) (shortID string, err error) {
 	if _, err = url.ParseRequestURI(fullURL); err != nil {
 		return "", err
 	}
 
 	shortID = getShortSHA1Hash(fullURL, shortHashByteCount)
 
-	if err := app.repository.SaveEntry(ctx, shortID, fullURL); err != nil {
+	if err := app.repository.SaveEntry(ctx, userID, shortID, fullURL); err != nil {
 		switch {
 		case errors.Is(err, repository.ErrConflict):
 			shortID, err = app.repository.GetShortID(ctx, fullURL)
@@ -63,7 +63,7 @@ func (app *URLShortenerApp) GetShortID(ctx context.Context, fullURL string) (sho
 }
 
 // Метод GetShortIDBatch возвращает короткие ID слайса ссылок.
-func (app *URLShortenerApp) GetShortIDBatch(ctx context.Context, fullURLs []string) (shortIDs []string, err error) {
+func (app *URLShortenerApp) GetShortIDBatch(ctx context.Context, userID int, fullURLs []string) (shortIDs []string, err error) {
 	shortIDs = make([]string, len(fullURLs))
 	for i, fullURL := range fullURLs {
 		if _, err = url.ParseRequestURI(fullURL); err != nil {
@@ -74,21 +74,21 @@ func (app *URLShortenerApp) GetShortIDBatch(ctx context.Context, fullURLs []stri
 		shortIDs[i] = shortID
 	}
 
-	if err = app.saveBatch(ctx, shortIDs, fullURLs); err != nil {
+	if err = app.saveBatch(ctx, userID, shortIDs, fullURLs); err != nil {
 		return nil, err
 	}
 
 	return shortIDs, nil
 }
 
-func (app *URLShortenerApp) saveBatch(ctx context.Context, shortIDs []string, fullURLs []string) error {
+func (app *URLShortenerApp) saveBatch(ctx context.Context, userID int, shortIDs []string, fullURLs []string) error {
 	shortURLMap := make(map[string]string, len(shortIDs))
 
 	for i := 0; i < len(shortIDs); i++ {
 		shortURLMap[shortIDs[i]] = fullURLs[i]
 	}
 
-	return app.repository.SaveEntries(ctx, shortURLMap)
+	return app.repository.SaveEntries(ctx, userID, shortURLMap)
 }
 
 func getShortSHA1Hash(value string, byteCount int) string {

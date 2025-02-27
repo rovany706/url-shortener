@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	repository "github.com/rovany706/url-shortener/internal/repository"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -69,6 +70,21 @@ func (mr *MockRepositoryMockRecorder) GetFullURL(ctx, shortID any) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFullURL", reflect.TypeOf((*MockRepository)(nil).GetFullURL), ctx, shortID)
 }
 
+// GetNewUserID mocks base method.
+func (m *MockRepository) GetNewUserID(ctx context.Context) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNewUserID", ctx)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetNewUserID indicates an expected call of GetNewUserID.
+func (mr *MockRepositoryMockRecorder) GetNewUserID(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNewUserID", reflect.TypeOf((*MockRepository)(nil).GetNewUserID), ctx)
+}
+
 // GetShortID mocks base method.
 func (m *MockRepository) GetShortID(ctx context.Context, fullURL string) (string, error) {
 	m.ctrl.T.Helper()
@@ -82,6 +98,21 @@ func (m *MockRepository) GetShortID(ctx context.Context, fullURL string) (string
 func (mr *MockRepositoryMockRecorder) GetShortID(ctx, fullURL any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetShortID", reflect.TypeOf((*MockRepository)(nil).GetShortID), ctx, fullURL)
+}
+
+// GetUserEntries mocks base method.
+func (m *MockRepository) GetUserEntries(ctx context.Context, userID int) (repository.ShortIDMap, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserEntries", ctx, userID)
+	ret0, _ := ret[0].(repository.ShortIDMap)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserEntries indicates an expected call of GetUserEntries.
+func (mr *MockRepositoryMockRecorder) GetUserEntries(ctx, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserEntries", reflect.TypeOf((*MockRepository)(nil).GetUserEntries), ctx, userID)
 }
 
 // Ping mocks base method.
@@ -99,29 +130,29 @@ func (mr *MockRepositoryMockRecorder) Ping(ctx any) *gomock.Call {
 }
 
 // SaveEntries mocks base method.
-func (m *MockRepository) SaveEntries(ctx context.Context, shortIDMap map[string]string) error {
+func (m *MockRepository) SaveEntries(ctx context.Context, userID int, shortIDMap repository.ShortIDMap) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveEntries", ctx, shortIDMap)
+	ret := m.ctrl.Call(m, "SaveEntries", ctx, userID, shortIDMap)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SaveEntries indicates an expected call of SaveEntries.
-func (mr *MockRepositoryMockRecorder) SaveEntries(ctx, shortIDMap any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) SaveEntries(ctx, userID, shortIDMap any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveEntries", reflect.TypeOf((*MockRepository)(nil).SaveEntries), ctx, shortIDMap)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveEntries", reflect.TypeOf((*MockRepository)(nil).SaveEntries), ctx, userID, shortIDMap)
 }
 
 // SaveEntry mocks base method.
-func (m *MockRepository) SaveEntry(ctx context.Context, shortID, fullURL string) error {
+func (m *MockRepository) SaveEntry(ctx context.Context, userID int, shortID, fullURL string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveEntry", ctx, shortID, fullURL)
+	ret := m.ctrl.Call(m, "SaveEntry", ctx, userID, shortID, fullURL)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SaveEntry indicates an expected call of SaveEntry.
-func (mr *MockRepositoryMockRecorder) SaveEntry(ctx, shortID, fullURL any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) SaveEntry(ctx, userID, shortID, fullURL any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveEntry", reflect.TypeOf((*MockRepository)(nil).SaveEntry), ctx, shortID, fullURL)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveEntry", reflect.TypeOf((*MockRepository)(nil).SaveEntry), ctx, userID, shortID, fullURL)
 }

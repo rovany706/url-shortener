@@ -12,18 +12,24 @@ import (
 
 var (
 	insertEntrySQL = fmt.Sprintf(
-		`INSERT INTO %s (short_id, full_url)
-		VALUES ($1, $2)`, database.TableName)
+		`INSERT INTO %s (short_id, full_url, user_id)
+		VALUES ($1, $2, $3)`, database.ShortLinksTableName)
 	insertEntrySQLBatch = fmt.Sprintf(
-		`INSERT INTO %s (short_id, full_url)
-			VALUES ($1, $2)
-			ON CONFLICT (full_url) DO NOTHING`, database.TableName)
+		`INSERT INTO %s (short_id, full_url, user_id)
+			VALUES ($1, $2, $3)
+			ON CONFLICT (full_url) DO NOTHING`, database.ShortLinksTableName)
 	selectFullURLSQL = fmt.Sprintf(
 		`SELECT full_url FROM %s
-		WHERE short_id = $1`, database.TableName)
+		WHERE short_id = $1`, database.ShortLinksTableName)
 	selectShortIDSQL = fmt.Sprintf(
 		`SELECT short_id FROM %s
-		WHERE full_url = $1`, database.TableName)
+		WHERE full_url = $1`, database.ShortLinksTableName)
+	selectUserURLs = fmt.Sprintf(
+		`SELECT short_id, full_url FROM %s
+		WHERE user_id = $1`, database.ShortLinksTableName)
+	insertNewUser = fmt.Sprintf(
+		`INSERT INTO %s DEFAULT VALUES RETURNING id;`,
+		database.UsersTableName)
 )
 
 type DatabaseRepository struct {
@@ -57,8 +63,8 @@ func (repository *DatabaseRepository) GetFullURL(ctx context.Context, shortID st
 	return fullURL, true
 }
 
-func (repository *DatabaseRepository) SaveEntry(ctx context.Context, shortID string, fullURL string) error {
-	_, err := repository.db.DBConnection.ExecContext(ctx, insertEntrySQL, shortID, fullURL)
+func (repository *DatabaseRepository) SaveEntry(ctx context.Context, userID int, shortID string, fullURL string) error {
+	_, err := repository.db.DBConnection.ExecContext(ctx, insertEntrySQL, shortID, fullURL, userID)
 
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -81,6 +87,38 @@ func (repository *DatabaseRepository) GetShortID(ctx context.Context, fullURL st
 	return
 }
 
+func (repository *DatabaseRepository) GetUserEntries(ctx context.Context, userID int) (shortIDMap ShortIDMap, err error) {
+	rows, err := repository.db.DBConnection.QueryContext(ctx, selectUserURLs, userID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	shortIDMap = make(ShortIDMap, 0)
+	for rows.Next() {
+		var userEntry struct {
+			shortID string
+			fullURL string
+		}
+
+		err = rows.Scan(&userEntry.shortID, &userEntry.fullURL)
+		if err != nil {
+			return nil, err
+		}
+
+		shortIDMap[userEntry.shortID] = userEntry.fullURL
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return shortIDMap, nil
+}
+
 func (repository *DatabaseRepository) Close() error {
 	return repository.db.DBConnection.Close()
 }
@@ -89,7 +127,7 @@ func (repository *DatabaseRepository) Ping(ctx context.Context) error {
 	return repository.db.DBConnection.PingContext(ctx)
 }
 
-func (repository *DatabaseRepository) SaveEntries(ctx context.Context, shortIDMap map[string]string) error {
+func (repository *DatabaseRepository) SaveEntries(ctx context.Context, userID int, shortIDMap ShortIDMap) error {
 	tx, err := repository.db.DBConnection.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -98,7 +136,7 @@ func (repository *DatabaseRepository) SaveEntries(ctx context.Context, shortIDMa
 	defer tx.Rollback()
 
 	for shortID, fullURL := range shortIDMap {
-		_, err := tx.ExecContext(ctx, insertEntrySQLBatch, shortID, fullURL)
+		_, err := tx.ExecContext(ctx, insertEntrySQLBatch, shortID, fullURL, userID)
 
 		if err != nil {
 			return err
@@ -106,4 +144,15 @@ func (repository *DatabaseRepository) SaveEntries(ctx context.Context, shortIDMa
 	}
 
 	return tx.Commit()
+}
+func (repository *DatabaseRepository) GetNewUserID(ctx context.Context) (userID int, err error) {
+	row := repository.db.DBConnection.QueryRowContext(ctx, insertNewUser)
+
+	err = row.Scan(&userID)
+
+	if err != nil {
+		return -1, err
+	}
+
+	return userID, nil
 }

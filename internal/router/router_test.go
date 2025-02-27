@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/rovany706/url-shortener/internal/app"
+	authMock "github.com/rovany706/url-shortener/internal/auth/mock"
 	"github.com/rovany706/url-shortener/internal/config"
 	"github.com/rovany706/url-shortener/internal/repository/mock"
 	"github.com/stretchr/testify/assert"
@@ -155,12 +156,15 @@ func TestMainRouter(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 			repository := mock.NewMockRepository(ctrl)
+			repository.EXPECT().GetNewUserID(gomock.Any()).Return(1, nil).AnyTimes()
 			repository.EXPECT().Ping(gomock.Any()).Return(nil).AnyTimes()
 			obs, logs := observer.New(zap.InfoLevel)
 			logger := zap.New(obs)
 			shortener := app.NewMockURLShortener(shortURLMap)
+			auth := authMock.NewMockJWTAuthentication(ctrl)
+			auth.EXPECT().CreateToken(1).Return("token", nil).AnyTimes()
 
-			r := MainRouter(shortener, appConfig, repository, logger)
+			r := MainRouter(shortener, appConfig, repository, auth, logger)
 			ts := httptest.NewServer(r)
 			defer ts.Close()
 
