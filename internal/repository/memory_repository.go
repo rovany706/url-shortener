@@ -66,5 +66,5 @@ func (r *MemoryRepository) GetUserEntries(ctx context.Context, userID int) (shor
 }
 
 func (r *MemoryRepository) GetNewUserID(ctx context.Context) (userID int, err error) {
-	return -1, ErrNotImplemented
+	return -1, nil
 }

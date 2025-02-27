@@ -137,5 +137,5 @@ func (repository *FileRepository) GetUserEntries(ctx context.Context, userID int
 }
 
 func (repository *FileRepository) GetNewUserID(ctx context.Context) (userID int, err error) {
-	return -1, ErrNotImplemented
+	return -1, nil
 }

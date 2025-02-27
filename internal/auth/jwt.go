@@ -8,7 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-const TOKEN_EXP = time.Hour * 24
+const TokenExpiryTime = time.Hour * 24
 const AuthCookieName = "token"
 
 type JWTAuthentication interface {
@@ -48,7 +48,7 @@ func generateSecretKey() ([]byte, error) {
 func (auth *AppJWTAuthentication) CreateToken(userID int) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(TOKEN_EXP)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(TokenExpiryTime)),
 		},
 		UserID: userID,
 	})
