@@ -26,6 +26,7 @@ var CreateTablesSQL = fmt.Sprintf(
 		id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
 		short_id varchar(8) NOT NULL,
 		full_url text UNIQUE NOT NULL,
+		is_deleted boolean NOT NULL,
 		user_id INT REFERENCES users(id)
 	);`,
 	UsersTableName, ShortLinksTableName)

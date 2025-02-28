@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/rovany706/url-shortener/internal/config"
+	"github.com/rovany706/url-shortener/internal/models"
 	"github.com/spf13/afero"
 )
 
@@ -17,6 +18,7 @@ type Repository interface {
 	GetShortID(ctx context.Context, fullURL string) (shortID string, err error)
 	GetUserEntries(ctx context.Context, userID int) (shortIDMap ShortIDMap, err error)
 	GetNewUserID(ctx context.Context) (userID int, err error)
+	DeleteUserURLs(ctx context.Context, deleteRequests []models.UserDeleteRequest) error
 	Ping(ctx context.Context) error
 	Close() error
 }

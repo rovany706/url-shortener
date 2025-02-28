@@ -10,6 +10,7 @@ import (
 	"github.com/rovany706/url-shortener/internal/logger"
 	"github.com/rovany706/url-shortener/internal/repository"
 	"github.com/rovany706/url-shortener/internal/server"
+	"github.com/rovany706/url-shortener/internal/service"
 	"go.uber.org/zap"
 )
 
@@ -51,5 +52,9 @@ func run(appConfig *config.AppConfig, logger *zap.Logger) error {
 
 	defer repository.Close()
 
-	return server.RunServer(app, appConfig, auth, repository, logger)
+	deleteService := service.NewDeleteService(repository)
+	deleteService.StartWorker()
+	defer deleteService.StopWorker()
+
+	return server.RunServer(app, appConfig, auth, repository, deleteService, logger)
 }

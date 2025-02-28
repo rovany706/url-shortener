@@ -8,15 +8,16 @@ import (
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/rovany706/url-shortener/internal/database"
+	"github.com/rovany706/url-shortener/internal/models"
 )
 
 var (
 	insertEntrySQL = fmt.Sprintf(
-		`INSERT INTO %s (short_id, full_url, user_id)
-		VALUES ($1, $2, $3)`, database.ShortLinksTableName)
+		`INSERT INTO %s (short_id, full_url, user_id, is_deleted)
+		VALUES ($1, $2, $3, false)`, database.ShortLinksTableName)
 	insertEntrySQLBatch = fmt.Sprintf(
-		`INSERT INTO %s (short_id, full_url, user_id)
-			VALUES ($1, $2, $3)
+		`INSERT INTO %s (short_id, full_url, user_id, is_deleted)
+			VALUES ($1, $2, $3, false)
 			ON CONFLICT (full_url) DO NOTHING`, database.ShortLinksTableName)
 	selectFullURLSQL = fmt.Sprintf(
 		`SELECT full_url FROM %s
@@ -30,6 +31,11 @@ var (
 	insertNewUser = fmt.Sprintf(
 		`INSERT INTO %s DEFAULT VALUES RETURNING id;`,
 		database.UsersTableName)
+	deleteShortLink = fmt.Sprintf(
+		`UPDATE %s
+		SET is_deleted = true
+		WHERE short_id = $1 AND user_id = $2`,
+		database.ShortLinksTableName)
 )
 
 type DatabaseRepository struct {
@@ -155,4 +161,23 @@ func (repository *DatabaseRepository) GetNewUserID(ctx context.Context) (userID 
 	}
 
 	return userID, nil
+}
+
+func (repository *DatabaseRepository) DeleteUserURLs(ctx context.Context, deleteRequests []models.UserDeleteRequest) error {
+	tx, err := repository.db.DBConnection.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback()
+
+	for _, request := range deleteRequests {
+		_, err = tx.ExecContext(ctx, deleteShortLink, request.ShortIDToDelete, request.UserID)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
 }

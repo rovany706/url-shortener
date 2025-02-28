@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"sync"
+
+	"github.com/rovany706/url-shortener/internal/models"
 )
 
 type MemoryRepository struct {
@@ -67,4 +69,8 @@ func (r *MemoryRepository) GetUserEntries(ctx context.Context, userID int) (shor
 
 func (r *MemoryRepository) GetNewUserID(ctx context.Context) (userID int, err error) {
 	return -1, nil
+}
+
+func (r *MemoryRepository) DeleteUserURLs(ctx context.Context, deleteRequests []models.UserDeleteRequest) error {
+	return nil
 }

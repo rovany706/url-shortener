@@ -28,3 +28,10 @@ type UserShortenedURL struct {
 }
 
 type UserShortenedURLs []UserShortenedURL
+
+type DeleteURLsRequest []string
+
+type UserDeleteRequest struct {
+	UserID          int
+	ShortIDToDelete string
+}

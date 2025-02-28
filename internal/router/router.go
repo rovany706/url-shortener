@@ -8,10 +8,11 @@ import (
 	"github.com/rovany706/url-shortener/internal/handlers"
 	"github.com/rovany706/url-shortener/internal/middleware"
 	"github.com/rovany706/url-shortener/internal/repository"
+	"github.com/rovany706/url-shortener/internal/service"
 	"go.uber.org/zap"
 )
 
-func MainRouter(app app.URLShortener, appConfig *config.AppConfig, repository repository.Repository, auth auth.JWTAuthentication, logger *zap.Logger) chi.Router {
+func MainRouter(app app.URLShortener, appConfig *config.AppConfig, repository repository.Repository, auth auth.JWTAuthentication, deleteService *service.DeleteService, logger *zap.Logger) chi.Router {
 	r := chi.NewRouter()
 	r.Use(middleware.ResponseLogger(logger))
 	r.Use(middleware.RequestLogger(logger))
@@ -26,6 +27,7 @@ func MainRouter(app app.URLShortener, appConfig *config.AppConfig, repository re
 			r.Post("/shorten", handlers.MakeShortURLHandlerJSON(app, appConfig, auth, repository, logger))
 			r.Post("/shorten/batch", handlers.MakeShortURLBatchHandler(app, appConfig, auth, repository, logger))
 			r.Get("/user/urls", handlers.GetUserURLs(auth, repository, appConfig, logger))
+			r.Delete("/user/urls", handlers.DeleteUserURLs(deleteService, auth, repository, appConfig, logger))
 		})
 	})
 

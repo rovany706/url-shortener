@@ -8,6 +8,7 @@ import (
 	"github.com/rovany706/url-shortener/internal/config"
 	"github.com/rovany706/url-shortener/internal/models"
 	"github.com/rovany706/url-shortener/internal/repository"
+	"github.com/rovany706/url-shortener/internal/service"
 	"go.uber.org/zap"
 )
 
@@ -68,5 +69,42 @@ func GetUserURLs(authentication auth.JWTAuthentication, repository repository.Re
 			http.Error(w, "", http.StatusInternalServerError)
 			return
 		}
+	}
+}
+
+func DeleteUserURLs(deleteService *service.DeleteService, authentication auth.JWTAuthentication, repository repository.Repository, appConfig *config.AppConfig, logger *zap.Logger) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID, err := getUserIDFromRequest(r.Context(), authentication, repository, r)
+
+		if err != nil {
+			http.Error(w, "", http.StatusBadRequest)
+			return
+		}
+
+		decoder := json.NewDecoder(r.Body)
+		var request models.DeleteURLsRequest
+
+		if err = decoder.Decode(&request); err != nil {
+			logger.Info("cannot decode request JSON body", zap.Error(err))
+			http.Error(w, "", http.StatusBadRequest)
+			return
+		}
+
+		deleteChan := make(chan models.UserDeleteRequest)
+		go func() {
+			defer close(deleteChan)
+			for _, shortID := range request {
+				deleteRequest := models.UserDeleteRequest{
+					UserID:          userID,
+					ShortIDToDelete: shortID,
+				}
+
+				deleteChan <- deleteRequest
+			}
+		}()
+
+		deleteService.Put(deleteChan)
+
+		w.WriteHeader(http.StatusAccepted)
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/rovany706/url-shortener/internal/models"
 	"github.com/rovany706/url-shortener/internal/storage"
 	"github.com/spf13/afero"
 )
@@ -138,4 +139,8 @@ func (repository *FileRepository) GetUserEntries(ctx context.Context, userID int
 
 func (repository *FileRepository) GetNewUserID(ctx context.Context) (userID int, err error) {
 	return -1, nil
+}
+
+func (repository *FileRepository) DeleteUserURLs(ctx context.Context, deleteRequests []models.UserDeleteRequest) error {
+	return nil
 }
