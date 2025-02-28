@@ -12,6 +12,7 @@ import (
 	authMock "github.com/rovany706/url-shortener/internal/auth/mock"
 	"github.com/rovany706/url-shortener/internal/config"
 	"github.com/rovany706/url-shortener/internal/repository/mock"
+	serviceMock "github.com/rovany706/url-shortener/internal/service/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -163,8 +164,9 @@ func TestMainRouter(t *testing.T) {
 			shortener := app.NewMockURLShortener(shortURLMap)
 			auth := authMock.NewMockJWTAuthentication(ctrl)
 			auth.EXPECT().CreateToken(1).Return("token", nil).AnyTimes()
+			deleteService := serviceMock.NewMockDeleteService(ctrl)
 
-			r := MainRouter(shortener, appConfig, repository, auth, logger)
+			r := MainRouter(shortener, appConfig, repository, auth, deleteService, logger)
 			ts := httptest.NewServer(r)
 			defer ts.Close()
 

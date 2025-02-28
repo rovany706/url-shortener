@@ -20,8 +20,8 @@ func loadTestData(t *testing.T, fs afero.Fs, testDataFilePath string, mockFilePa
 
 func TestGetFullURL(t *testing.T) {
 	type want struct {
-		fullURL string
-		ok      bool
+		info *ShortenedURLInfo
+		ok   bool
 	}
 	tests := []struct {
 		name    string
@@ -32,16 +32,21 @@ func TestGetFullURL(t *testing.T) {
 			name:    "existing ID",
 			shortID: "89dce6a4",
 			want: want{
-				fullURL: "http://example.com",
-				ok:      true,
+				info: &ShortenedURLInfo{
+					FullURL:   "http://example.com",
+					ShortID:   "89dce6a4",
+					IsDeleted: false,
+					UserID:    1,
+				},
+				ok: true,
 			},
 		},
 		{
 			name:    "missing ID",
 			shortID: "11111111",
 			want: want{
-				fullURL: "",
-				ok:      false,
+				info: nil,
+				ok:   false,
 			},
 		},
 	}
@@ -57,10 +62,16 @@ func TestGetFullURL(t *testing.T) {
 			repository, err := NewFileRepository(fs, testStoragePath)
 			require.NoError(t, err)
 
-			fullURL, ok := repository.GetFullURL(ctx, tt.shortID)
+			info, ok := repository.GetFullURL(ctx, tt.shortID)
 
-			assert.Equal(t, tt.want.fullURL, fullURL)
 			assert.Equal(t, tt.want.ok, ok)
+
+			if !ok {
+				assert.Nil(t, info)
+				return
+			}
+
+			assert.Equal(t, *tt.want.info, *info)
 		})
 	}
 }

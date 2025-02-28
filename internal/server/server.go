@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func RunServer(app app.URLShortener, appConfig *config.AppConfig, auth auth.JWTAuthentication, repository repository.Repository, deleteService *service.DeleteService, logger *zap.Logger) error {
+func RunServer(app app.URLShortener, appConfig *config.AppConfig, auth auth.JWTAuthentication, repository repository.Repository, deleteService *service.DeleteServiceImpl, logger *zap.Logger) error {
 	r := router.MainRouter(app, appConfig, repository, auth, deleteService, logger)
 
 	return http.ListenAndServe(appConfig.AppRunAddress, r)

@@ -13,7 +13,7 @@ import (
 const shortHashByteCount = 4
 
 type URLShortener interface {
-	GetFullURL(ctx context.Context, shortID string) (fullURL string, ok bool)
+	GetFullURL(ctx context.Context, shortID string) (shortenedURLInfo *repository.ShortenedURLInfo, ok bool)
 	GetShortID(ctx context.Context, userID int, fullURL string) (shortID string, err error)
 	GetShortIDBatch(ctx context.Context, userID int, fullURLs []string) (shortIDs []string, err error)
 }
@@ -32,7 +32,7 @@ func NewURLShortenerApp(repository repository.Repository) *URLShortenerApp {
 }
 
 // Метод GetFullURL возвращает полную ссылку по короткому id и флаг успеха операции.
-func (app *URLShortenerApp) GetFullURL(ctx context.Context, shortID string) (fullURL string, ok bool) {
+func (app *URLShortenerApp) GetFullURL(ctx context.Context, shortID string) (shortenedURLInfo *repository.ShortenedURLInfo, ok bool) {
 	return app.repository.GetFullURL(ctx, shortID)
 }
 

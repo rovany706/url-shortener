@@ -20,7 +20,7 @@ var (
 			VALUES ($1, $2, $3, false)
 			ON CONFLICT (full_url) DO NOTHING`, database.ShortLinksTableName)
 	selectFullURLSQL = fmt.Sprintf(
-		`SELECT full_url FROM %s
+		`SELECT user_id, short_id, full_url, is_deleted FROM %s
 		WHERE short_id = $1`, database.ShortLinksTableName)
 	selectShortIDSQL = fmt.Sprintf(
 		`SELECT short_id FROM %s
@@ -58,15 +58,16 @@ func NewDatabaseRepository(ctx context.Context, connString string) (Repository, 
 	return &dbRepository, nil
 }
 
-func (repository *DatabaseRepository) GetFullURL(ctx context.Context, shortID string) (fullURL string, ok bool) {
+func (repository *DatabaseRepository) GetFullURL(ctx context.Context, shortID string) (shortenedURLInfo *ShortenedURLInfo, ok bool) {
+	shortenedURLInfo = &ShortenedURLInfo{}
 	row := repository.db.DBConnection.QueryRowContext(ctx, selectFullURLSQL, shortID)
-	err := row.Scan(&fullURL)
+	err := row.Scan(&shortenedURLInfo.UserID, &shortenedURLInfo.ShortID, &shortenedURLInfo.FullURL, &shortenedURLInfo.IsDeleted)
 
 	if err != nil {
-		return "", false
+		return nil, false
 	}
 
-	return fullURL, true
+	return shortenedURLInfo, true
 }
 
 func (repository *DatabaseRepository) SaveEntry(ctx context.Context, userID int, shortID string, fullURL string) error {

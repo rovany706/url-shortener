@@ -49,14 +49,20 @@ func initializeShortURLMap(storage storage.Storage) *sync.Map {
 }
 
 // Метод GetFullURL ищет в хранилище полную ссылку на ресурс по короткому ID
-func (repository *FileRepository) GetFullURL(ctx context.Context, shortID string) (fullURL string, ok bool) {
+func (repository *FileRepository) GetFullURL(ctx context.Context, shortID string) (shortenedURLInfo *ShortenedURLInfo, ok bool) {
 	v, ok := repository.shortURLMap.Load(shortID)
 
 	if ok {
-		fullURL = v.(string)
+		fullURL := v.(string)
+		shortenedURLInfo = &ShortenedURLInfo{
+			UserID:    1,
+			FullURL:   fullURL,
+			ShortID:   shortID,
+			IsDeleted: false,
+		}
 	}
 
-	return fullURL, ok
+	return shortenedURLInfo, ok
 }
 
 // Метод SaveEntry сохраняет в хранилище информацию о сокращенной ссылке

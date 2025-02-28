@@ -72,7 +72,7 @@ func GetUserURLs(authentication auth.JWTAuthentication, repository repository.Re
 	}
 }
 
-func DeleteUserURLs(deleteService *service.DeleteService, authentication auth.JWTAuthentication, repository repository.Repository, appConfig *config.AppConfig, logger *zap.Logger) http.HandlerFunc {
+func DeleteUserURLs(deleteService service.DeleteService, authentication auth.JWTAuthentication, repository repository.Repository, appConfig *config.AppConfig, logger *zap.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID, err := getUserIDFromRequest(r.Context(), authentication, repository, r)
 

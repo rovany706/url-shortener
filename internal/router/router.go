@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func MainRouter(app app.URLShortener, appConfig *config.AppConfig, repository repository.Repository, auth auth.JWTAuthentication, deleteService *service.DeleteService, logger *zap.Logger) chi.Router {
+func MainRouter(app app.URLShortener, appConfig *config.AppConfig, repository repository.Repository, auth auth.JWTAuthentication, deleteService service.DeleteService, logger *zap.Logger) chi.Router {
 	r := chi.NewRouter()
 	r.Use(middleware.ResponseLogger(logger))
 	r.Use(middleware.RequestLogger(logger))

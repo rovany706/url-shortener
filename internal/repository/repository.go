@@ -11,8 +11,15 @@ import (
 
 type ShortIDMap map[string]string
 
+type ShortenedURLInfo struct {
+	UserID    int
+	FullURL   string
+	ShortID   string
+	IsDeleted bool
+}
+
 type Repository interface {
-	GetFullURL(ctx context.Context, shortID string) (fullURL string, ok bool)
+	GetFullURL(ctx context.Context, shortID string) (shortenedURLInfo *ShortenedURLInfo, ok bool)
 	SaveEntry(ctx context.Context, userID int, shortID string, fullURL string) error
 	SaveEntries(ctx context.Context, userID int, shortIDMap ShortIDMap) error
 	GetShortID(ctx context.Context, fullURL string) (shortID string, err error)

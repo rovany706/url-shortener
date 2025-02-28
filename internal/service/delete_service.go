@@ -15,24 +15,30 @@ const (
 	Timeout               = time.Second * 10
 )
 
-type DeleteService struct {
+type DeleteService interface {
+	Put(deleteChan chan models.UserDeleteRequest)
+	StartWorker()
+	StopWorker()
+}
+
+type DeleteServiceImpl struct {
 	flushTicker  *time.Ticker
 	deleteBuffer *DeleteRequestBuffer
 	repo         repository.Repository
 }
 
-func NewDeleteService(repo repository.Repository) *DeleteService {
-	return &DeleteService{
+func NewDeleteService(repo repository.Repository) *DeleteServiceImpl {
+	return &DeleteServiceImpl{
 		deleteBuffer: NewDeleteBuffer(),
 		repo:         repo,
 	}
 }
 
-func (ds *DeleteService) Put(deleteChan chan models.UserDeleteRequest) {
+func (ds *DeleteServiceImpl) Put(deleteChan chan models.UserDeleteRequest) {
 	ds.deleteBuffer.Add(deleteChan)
 }
 
-func (ds *DeleteService) StartWorker() {
+func (ds *DeleteServiceImpl) StartWorker() {
 	ds.flushTicker = time.NewTicker(DeleteFlushTimePeriod)
 
 	go func() {
@@ -53,7 +59,7 @@ func (ds *DeleteService) StartWorker() {
 	}()
 }
 
-func (ds *DeleteService) StopWorker() {
+func (ds *DeleteServiceImpl) StopWorker() {
 	ds.flushTicker.Stop()
 }
 

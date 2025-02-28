@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	models "github.com/rovany706/url-shortener/internal/models"
 	repository "github.com/rovany706/url-shortener/internal/repository"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -55,11 +56,25 @@ func (mr *MockRepositoryMockRecorder) Close() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockRepository)(nil).Close))
 }
 
+// DeleteUserURLs mocks base method.
+func (m *MockRepository) DeleteUserURLs(ctx context.Context, deleteRequests []models.UserDeleteRequest) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteUserURLs", ctx, deleteRequests)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteUserURLs indicates an expected call of DeleteUserURLs.
+func (mr *MockRepositoryMockRecorder) DeleteUserURLs(ctx, deleteRequests any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUserURLs", reflect.TypeOf((*MockRepository)(nil).DeleteUserURLs), ctx, deleteRequests)
+}
+
 // GetFullURL mocks base method.
-func (m *MockRepository) GetFullURL(ctx context.Context, shortID string) (string, bool) {
+func (m *MockRepository) GetFullURL(ctx context.Context, shortID string) (*repository.ShortenedURLInfo, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFullURL", ctx, shortID)
-	ret0, _ := ret[0].(string)
+	ret0, _ := ret[0].(*repository.ShortenedURLInfo)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }

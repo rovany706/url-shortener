@@ -15,14 +15,20 @@ func NewMemoryRepository() *MemoryRepository {
 	return &MemoryRepository{}
 }
 
-func (r *MemoryRepository) GetFullURL(ctx context.Context, shortID string) (fullURL string, ok bool) {
+func (r *MemoryRepository) GetFullURL(ctx context.Context, shortID string) (shortenedURLInfo *ShortenedURLInfo, ok bool) {
 	v, ok := r.shortURLMap.Load(shortID)
 
 	if ok {
-		fullURL = v.(string)
+		fullURL := v.(string)
+		shortenedURLInfo = &ShortenedURLInfo{
+			UserID:    1,
+			FullURL:   fullURL,
+			ShortID:   shortID,
+			IsDeleted: false,
+		}
 	}
 
-	return fullURL, ok
+	return shortenedURLInfo, ok
 }
 
 func (r *MemoryRepository) SaveEntry(ctx context.Context, userID int, shortID string, fullURL string) error {
