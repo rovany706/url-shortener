@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/rovany706/url-shortener/internal/repository"
 	"github.com/rovany706/url-shortener/internal/repository/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -15,7 +16,7 @@ func TestGetFullURL(t *testing.T) {
 		name          string
 		existingLinks map[string]string
 		shortID       string
-		wantFullURL   string
+		wantInfo      *repository.ShortenedURLInfo
 		wantOk        bool
 	}{
 		{
@@ -23,18 +24,23 @@ func TestGetFullURL(t *testing.T) {
 			existingLinks: map[string]string{
 				"id1": "http://example.com/",
 			},
-			shortID:     "id1",
-			wantFullURL: "http://example.com/",
-			wantOk:      true,
+			shortID: "id1",
+			wantInfo: &repository.ShortenedURLInfo{
+				ShortID:   "id1",
+				FullURL:   "http://example.com/",
+				UserID:    1,
+				IsDeleted: false,
+			},
+			wantOk: true,
 		},
 		{
 			name: "shortID don't exist",
 			existingLinks: map[string]string{
 				"id1": "http://example.com/",
 			},
-			shortID:     "testid",
-			wantFullURL: "",
-			wantOk:      false,
+			shortID:  "testid",
+			wantInfo: nil,
+			wantOk:   false,
 		},
 	}
 
@@ -45,15 +51,15 @@ func TestGetFullURL(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 			repository := mock.NewMockRepository(ctrl)
-			repository.EXPECT().GetFullURL(gomock.Any(), tt.shortID).Return(tt.wantFullURL, tt.wantOk).AnyTimes()
+			repository.EXPECT().GetFullURL(gomock.Any(), tt.shortID).Return(tt.wantInfo, tt.wantOk)
 
 			app := NewURLShortenerApp(repository)
 
-			fullLink, ok := app.GetFullURL(ctx, tt.shortID)
+			info, ok := app.GetFullURL(ctx, tt.shortID)
 
 			if tt.wantOk {
 				assert.True(t, ok)
-				assert.Equal(t, tt.wantFullURL, fullLink)
+				assert.Equal(t, *tt.wantInfo, *info)
 				return
 			}
 

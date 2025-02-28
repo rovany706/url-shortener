@@ -51,10 +51,7 @@ func (ds *DeleteServiceImpl) StartWorker() {
 				deleteRequests = append(deleteRequests, request)
 			}
 
-			err := ds.repo.DeleteUserURLs(context.Background(), deleteRequests)
-			if err != nil {
-				// TODO
-			}
+			_ = ds.repo.DeleteUserURLs(context.Background(), deleteRequests)
 		}
 	}()
 }
