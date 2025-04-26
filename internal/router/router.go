@@ -35,6 +35,6 @@ func registerShortenHandlers(router chi.Router, shortenHandlers handlers.Shorten
 }
 
 func registerUserHandlers(router chi.Router, userHandlers handlers.UserHandlers) {
-	router.Get("/user/urls", userHandlers.GetUserURLsHandler())
-	router.Delete("/user/urls", userHandlers.DeleteUserURLsHandler())
+	router.Get("/api/user/urls", userHandlers.GetUserURLsHandler())
+	router.Delete("/api/user/urls", userHandlers.DeleteUserURLsHandler())
 }
