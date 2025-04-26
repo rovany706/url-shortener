@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"sync"
+
+	"github.com/rovany706/url-shortener/internal/models"
 )
 
 type MemoryRepository struct {
@@ -13,17 +15,23 @@ func NewMemoryRepository() *MemoryRepository {
 	return &MemoryRepository{}
 }
 
-func (r *MemoryRepository) GetFullURL(ctx context.Context, shortID string) (fullURL string, ok bool) {
+func (r *MemoryRepository) GetFullURL(ctx context.Context, shortID string) (shortenedURLInfo *ShortenedURLInfo, ok bool) {
 	v, ok := r.shortURLMap.Load(shortID)
 
 	if ok {
-		fullURL = v.(string)
+		fullURL := v.(string)
+		shortenedURLInfo = &ShortenedURLInfo{
+			UserID:    1,
+			FullURL:   fullURL,
+			ShortID:   shortID,
+			IsDeleted: false,
+		}
 	}
 
-	return fullURL, ok
+	return shortenedURLInfo, ok
 }
 
-func (r *MemoryRepository) SaveEntry(ctx context.Context, shortID string, fullURL string) error {
+func (r *MemoryRepository) SaveEntry(ctx context.Context, userID int, shortID string, fullURL string) error {
 	r.shortURLMap.LoadOrStore(shortID, fullURL)
 
 	return nil
@@ -37,9 +45,9 @@ func (r *MemoryRepository) Ping(ctx context.Context) error {
 	return ErrPingNotSupported
 }
 
-func (r *MemoryRepository) SaveEntries(ctx context.Context, shortIDMap map[string]string) error {
+func (r *MemoryRepository) SaveEntries(ctx context.Context, userID int, shortIDMap URLMapping) error {
 	for shortID, fullURL := range shortIDMap {
-		err := r.SaveEntry(ctx, shortID, fullURL)
+		err := r.SaveEntry(ctx, userID, shortID, fullURL)
 
 		if err != nil {
 			return err
@@ -59,4 +67,16 @@ func (r *MemoryRepository) GetShortID(ctx context.Context, fullURL string) (shor
 	})
 
 	return
+}
+
+func (r *MemoryRepository) GetUserEntries(ctx context.Context, userID int) (shortIDMap URLMapping, err error) {
+	return nil, ErrNotImplemented
+}
+
+func (r *MemoryRepository) GetNewUserID(ctx context.Context) (userID int, err error) {
+	return -1, nil
+}
+
+func (r *MemoryRepository) DeleteUserURLs(ctx context.Context, deleteRequests []models.UserDeleteRequest) error {
+	return nil
 }

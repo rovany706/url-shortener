@@ -39,7 +39,7 @@ type AppConfig struct {
 	AppRunAddress   string `env:"SERVER_ADDRESS"`
 	LogLevel        string `env:"LOG_LEVEL"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
-	DatabaseDSN     string `env:"DATABSE_DSN"`
+	DatabaseDSN     string `env:"DATABASE_DSN"`
 	StorageType     StorageType
 }
 

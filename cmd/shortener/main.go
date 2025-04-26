@@ -1,13 +1,10 @@
 package main
 
 import (
-	"context"
 	"os"
 
-	"github.com/rovany706/url-shortener/internal/app"
 	"github.com/rovany706/url-shortener/internal/config"
 	"github.com/rovany706/url-shortener/internal/logger"
-	"github.com/rovany706/url-shortener/internal/repository"
 	"github.com/rovany706/url-shortener/internal/server"
 	"go.uber.org/zap"
 )
@@ -28,21 +25,18 @@ func main() {
 		panic(err)
 	}
 
-	if err = run(appConfig, logger); err != nil {
-		panic(err)
+	server, err := server.NewServer(appConfig, logger)
+	if err != nil {
+		logger.Fatal("error when creating server", zap.Error(err))
+	}
+
+	if err = run(server); err != nil {
+		logger.Fatal("error when running server", zap.Error(err))
 	}
 }
 
-func run(appConfig *config.AppConfig, logger *zap.Logger) error {
-	repository, err := repository.NewAppRepository(context.Background(), appConfig)
+func run(server *server.Server) error {
+	defer server.StopServer()
 
-	if err != nil {
-		panic(err)
-	}
-
-	app := app.NewURLShortenerApp(repository)
-
-	defer repository.Close()
-
-	return server.RunServer(app, appConfig, repository, logger)
+	return server.RunServer()
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/rovany706/url-shortener/internal/models"
 	"github.com/rovany706/url-shortener/internal/storage"
 	"github.com/spf13/afero"
 )
@@ -48,18 +49,24 @@ func initializeShortURLMap(storage storage.Storage) *sync.Map {
 }
 
 // Метод GetFullURL ищет в хранилище полную ссылку на ресурс по короткому ID
-func (repository *FileRepository) GetFullURL(ctx context.Context, shortID string) (fullURL string, ok bool) {
+func (repository *FileRepository) GetFullURL(ctx context.Context, shortID string) (shortenedURLInfo *ShortenedURLInfo, ok bool) {
 	v, ok := repository.shortURLMap.Load(shortID)
 
 	if ok {
-		fullURL = v.(string)
+		fullURL := v.(string)
+		shortenedURLInfo = &ShortenedURLInfo{
+			UserID:    1,
+			FullURL:   fullURL,
+			ShortID:   shortID,
+			IsDeleted: false,
+		}
 	}
 
-	return fullURL, ok
+	return shortenedURLInfo, ok
 }
 
 // Метод SaveEntry сохраняет в хранилище информацию о сокращенной ссылке
-func (repository *FileRepository) SaveEntry(ctx context.Context, shortID string, fullURL string) error {
+func (repository *FileRepository) SaveEntry(ctx context.Context, userID int, shortID string, fullURL string) error {
 	_, exists := repository.shortURLMap.LoadOrStore(shortID, fullURL)
 
 	if !exists {
@@ -86,7 +93,7 @@ func (repository *FileRepository) saveNewEntry(shortID string, fullURL string) e
 	return storageWriter.WriteEntry(&entry)
 }
 
-func (repository *FileRepository) SaveEntries(ctx context.Context, shortIDMap map[string]string) error {
+func (repository *FileRepository) SaveEntries(ctx context.Context, userID int, shortIDMap URLMapping) error {
 	storageWriter, err := storage.NewFileStorageWriter(repository.fs, repository.storageFilepath)
 
 	if err != nil {
@@ -130,4 +137,16 @@ func (repository *FileRepository) GetShortID(ctx context.Context, fullURL string
 	})
 
 	return
+}
+
+func (repository *FileRepository) GetUserEntries(ctx context.Context, userID int) (shortIDMap URLMapping, err error) {
+	return nil, ErrNotImplemented
+}
+
+func (repository *FileRepository) GetNewUserID(ctx context.Context) (userID int, err error) {
+	return -1, nil
+}
+
+func (repository *FileRepository) DeleteUserURLs(ctx context.Context, deleteRequests []models.UserDeleteRequest) error {
+	return nil
 }

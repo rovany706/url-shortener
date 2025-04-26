@@ -21,3 +21,17 @@ type BatchShortenResponseEntry struct {
 	CorrelationID string `json:"correlation_id"`
 	ShortURL      string `json:"short_url"`
 }
+
+type UserShortenedURL struct {
+	ShortURL    string `json:"short_url"`
+	OriginalURL string `json:"original_url"`
+}
+
+type UserShortenedURLs []UserShortenedURL
+
+type DeleteURLsRequest []string
+
+type UserDeleteRequest struct {
+	UserID          int
+	ShortIDToDelete string
+}

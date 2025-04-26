@@ -9,8 +9,11 @@ import (
 	"testing"
 
 	"github.com/rovany706/url-shortener/internal/app"
+	authMock "github.com/rovany706/url-shortener/internal/auth/mock"
 	"github.com/rovany706/url-shortener/internal/config"
+	"github.com/rovany706/url-shortener/internal/handlers"
 	"github.com/rovany706/url-shortener/internal/repository/mock"
+	serviceMock "github.com/rovany706/url-shortener/internal/service/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -155,12 +158,20 @@ func TestMainRouter(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 			repository := mock.NewMockRepository(ctrl)
+			repository.EXPECT().GetNewUserID(gomock.Any()).Return(1, nil).AnyTimes()
 			repository.EXPECT().Ping(gomock.Any()).Return(nil).AnyTimes()
 			obs, logs := observer.New(zap.InfoLevel)
 			logger := zap.New(obs)
 			shortener := app.NewMockURLShortener(shortURLMap)
+			tokenManager := authMock.NewMockTokenManager(ctrl)
+			tokenManager.EXPECT().CreateToken(1).Return("token", nil).AnyTimes()
+			deleteService := serviceMock.NewMockDeleteService(ctrl)
 
-			r := MainRouter(shortener, appConfig, repository, logger)
+			userHandlers := handlers.NewUserHandlers(deleteService, tokenManager, repository, appConfig, logger)
+			redirectHandlers := handlers.NewRedirectHandlers(shortener)
+			shortenHandlers := handlers.NewShortenURLHandlers(shortener, tokenManager, repository, appConfig, logger)
+
+			r := GetRouter(shortenHandlers, userHandlers, redirectHandlers, repository, logger)
 			ts := httptest.NewServer(r)
 			defer ts.Close()
 

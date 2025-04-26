@@ -7,11 +7,26 @@ import (
 	"github.com/rovany706/url-shortener/internal/app"
 )
 
-func RedirectHandler(app app.URLShortener) http.HandlerFunc {
+type RedirectHandlers struct {
+	app app.URLShortener
+}
+
+func NewRedirectHandlers(app app.URLShortener) RedirectHandlers {
+	return RedirectHandlers{
+		app: app,
+	}
+}
+
+func (h *RedirectHandlers) RedirectHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		shortID := chi.URLParam(r, "id")
-		if fullURL, ok := app.GetFullURL(r.Context(), shortID); ok {
-			http.Redirect(w, r, fullURL, http.StatusTemporaryRedirect)
+		shortenedURLInfo, ok := h.app.GetFullURL(r.Context(), shortID)
+		if ok {
+			if shortenedURLInfo.IsDeleted {
+				w.WriteHeader(http.StatusGone)
+				return
+			}
+			http.Redirect(w, r, shortenedURLInfo.FullURL, http.StatusTemporaryRedirect)
 		} else {
 			http.Error(w, "400 Bad Request", http.StatusBadRequest)
 		}
