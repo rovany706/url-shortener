@@ -93,7 +93,7 @@ func (repository *FileRepository) saveNewEntry(shortID string, fullURL string) e
 	return storageWriter.WriteEntry(&entry)
 }
 
-func (repository *FileRepository) SaveEntries(ctx context.Context, userID int, shortIDMap ShortIDMap) error {
+func (repository *FileRepository) SaveEntries(ctx context.Context, userID int, shortIDMap URLMapping) error {
 	storageWriter, err := storage.NewFileStorageWriter(repository.fs, repository.storageFilepath)
 
 	if err != nil {
@@ -139,7 +139,7 @@ func (repository *FileRepository) GetShortID(ctx context.Context, fullURL string
 	return
 }
 
-func (repository *FileRepository) GetUserEntries(ctx context.Context, userID int) (shortIDMap ShortIDMap, err error) {
+func (repository *FileRepository) GetUserEntries(ctx context.Context, userID int) (shortIDMap URLMapping, err error) {
 	return nil, ErrNotImplemented
 }
 

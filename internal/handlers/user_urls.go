@@ -12,9 +12,27 @@ import (
 	"go.uber.org/zap"
 )
 
-func GetUserURLs(authentication auth.JWTAuthentication, repository repository.Repository, appConfig *config.AppConfig, logger *zap.Logger) http.HandlerFunc {
+type UserHandlers struct {
+	appConfig     *config.AppConfig
+	logger        *zap.Logger
+	repository    repository.Repository
+	tokenManager  auth.TokenManager
+	deleteService service.DeleteService
+}
+
+func NewUserHandlers(deleteService service.DeleteService, tokenManager auth.TokenManager, repository repository.Repository, appConfig *config.AppConfig, logger *zap.Logger) UserHandlers {
+	return UserHandlers{
+		appConfig:     appConfig,
+		logger:        logger,
+		repository:    repository,
+		tokenManager:  tokenManager,
+		deleteService: deleteService,
+	}
+}
+
+func (h *UserHandlers) GetUserURLsHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userID, err := getUserIDFromRequest(r.Context(), authentication, repository, r)
+		userID, err := getUserIDFromRequest(r.Context(), h.tokenManager, h.repository, r)
 
 		if err != nil {
 			http.Error(w, "", http.StatusBadRequest)
@@ -22,14 +40,14 @@ func GetUserURLs(authentication auth.JWTAuthentication, repository repository.Re
 		}
 
 		if userID < 1 {
-			logger.Info("user id is invalid")
+			h.logger.Info("user id is invalid")
 			http.Error(w, "", http.StatusUnauthorized)
 			return
 		}
 
-		token, err := authentication.CreateToken(userID)
+		token, err := h.tokenManager.CreateToken(userID)
 		if err != nil {
-			logger.Info("error creating token", zap.Error(err))
+			h.logger.Info("error creating token", zap.Error(err))
 			http.Error(w, "", http.StatusBadRequest)
 			return
 		}
@@ -39,10 +57,10 @@ func GetUserURLs(authentication auth.JWTAuthentication, repository repository.Re
 			Value: token,
 		})
 
-		shortIDMap, err := repository.GetUserEntries(r.Context(), userID)
+		shortIDMap, err := h.repository.GetUserEntries(r.Context(), userID)
 
 		if err != nil {
-			logger.Info("error getting user urls", zap.Error(err))
+			h.logger.Info("error getting user urls", zap.Error(err))
 			http.Error(w, "", http.StatusBadRequest)
 			return
 		}
@@ -56,7 +74,7 @@ func GetUserURLs(authentication auth.JWTAuthentication, repository repository.Re
 
 		for shortID, fullURL := range shortIDMap {
 			response = append(response, models.UserShortenedURL{
-				ShortURL:    getShortURL(shortID, appConfig),
+				ShortURL:    getShortURL(shortID, h.appConfig),
 				OriginalURL: fullURL,
 			})
 		}
@@ -65,16 +83,16 @@ func GetUserURLs(authentication auth.JWTAuthentication, repository repository.Re
 		w.WriteHeader(http.StatusOK)
 		encoder := json.NewEncoder(w)
 		if err := encoder.Encode(response); err != nil {
-			logger.Info("error encoding response", zap.Error(err))
+			h.logger.Info("error encoding response", zap.Error(err))
 			http.Error(w, "", http.StatusInternalServerError)
 			return
 		}
 	}
 }
 
-func DeleteUserURLs(deleteService service.DeleteService, authentication auth.JWTAuthentication, repository repository.Repository, appConfig *config.AppConfig, logger *zap.Logger) http.HandlerFunc {
+func (h *UserHandlers) DeleteUserURLsHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userID, err := getUserIDFromRequest(r.Context(), authentication, repository, r)
+		userID, err := getUserIDFromRequest(r.Context(), h.tokenManager, h.repository, r)
 
 		if err != nil {
 			http.Error(w, "", http.StatusBadRequest)
@@ -85,7 +103,7 @@ func DeleteUserURLs(deleteService service.DeleteService, authentication auth.JWT
 		var request models.DeleteURLsRequest
 
 		if err = decoder.Decode(&request); err != nil {
-			logger.Info("cannot decode request JSON body", zap.Error(err))
+			h.logger.Info("cannot decode request JSON body", zap.Error(err))
 			http.Error(w, "", http.StatusBadRequest)
 			return
 		}
@@ -103,7 +121,7 @@ func DeleteUserURLs(deleteService service.DeleteService, authentication auth.JWT
 			}
 		}()
 
-		deleteService.Put(deleteChan)
+		h.deleteService.Put(deleteChan)
 
 		w.WriteHeader(http.StatusAccepted)
 	}

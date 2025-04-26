@@ -11,16 +11,16 @@ import (
 const TokenExpiryTime = time.Hour * 24
 const AuthCookieName = "token"
 
-type JWTAuthentication interface {
+type TokenManager interface {
 	GetClaimsFromToken(tokenString string) (*Claims, error)
 	CreateToken(userID int) (string, error)
 }
 
-type AppJWTAuthentication struct {
+type JWTTokenManager struct {
 	secretKey []byte
 }
 
-func NewAppJWTAuthentication(secretKey []byte) (*AppJWTAuthentication, error) {
+func NewJWTTokenManager(secretKey []byte) (*JWTTokenManager, error) {
 	var err error
 	if secretKey == nil {
 		secretKey, err = generateSecretKey()
@@ -30,7 +30,7 @@ func NewAppJWTAuthentication(secretKey []byte) (*AppJWTAuthentication, error) {
 		}
 	}
 
-	return &AppJWTAuthentication{
+	return &JWTTokenManager{
 		secretKey: secretKey,
 	}, nil
 }
@@ -45,7 +45,7 @@ func generateSecretKey() ([]byte, error) {
 	return b, nil
 }
 
-func (auth *AppJWTAuthentication) CreateToken(userID int) (string, error) {
+func (auth *JWTTokenManager) CreateToken(userID int) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(TokenExpiryTime)),
@@ -62,7 +62,7 @@ func (auth *AppJWTAuthentication) CreateToken(userID int) (string, error) {
 	return tokenString, nil
 }
 
-func (auth *AppJWTAuthentication) GetClaimsFromToken(tokenString string) (*Claims, error) {
+func (auth *JWTTokenManager) GetClaimsFromToken(tokenString string) (*Claims, error) {
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {

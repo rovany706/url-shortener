@@ -10,15 +10,14 @@ import (
 )
 
 const (
-	DeleteFlushTimePeriod = time.Second * 10
-	FanInChanCapacity     = 10
-	Timeout               = time.Second * 10
+	deleteFlushTimePeriod = time.Second * 10
+	fanInChanCapacity     = 10
+	timeout               = time.Second * 10
 )
 
 type DeleteService interface {
 	Put(deleteChan chan models.UserDeleteRequest)
-	StartWorker()
-	StopWorker()
+	StartWorker(context.Context)
 }
 
 type DeleteServiceImpl struct {
@@ -38,26 +37,28 @@ func (ds *DeleteServiceImpl) Put(deleteChan chan models.UserDeleteRequest) {
 	ds.deleteBuffer.Add(deleteChan)
 }
 
-func (ds *DeleteServiceImpl) StartWorker() {
-	ds.flushTicker = time.NewTicker(DeleteFlushTimePeriod)
+func (ds *DeleteServiceImpl) StartWorker(ctx context.Context) {
+	ds.flushTicker = time.NewTicker(deleteFlushTimePeriod)
 
 	go func() {
-		for range ds.flushTicker.C {
-			deleteChs := ds.deleteBuffer.Flush()
-			deleteFanInCh := fanIn(deleteChs...)
+		for {
+			select {
+			case <-ds.flushTicker.C:
+				deleteChs := ds.deleteBuffer.Flush()
+				deleteFanInCh := fanIn(deleteChs...)
 
-			deleteRequests := make([]models.UserDeleteRequest, 0)
-			for request := range deleteFanInCh {
-				deleteRequests = append(deleteRequests, request)
+				deleteRequests := make([]models.UserDeleteRequest, 0)
+				for request := range deleteFanInCh {
+					deleteRequests = append(deleteRequests, request)
+				}
+
+				_ = ds.repo.DeleteUserURLs(context.Background(), deleteRequests)
+			case <-ctx.Done():
+				ds.flushTicker.Stop()
+				return
 			}
-
-			_ = ds.repo.DeleteUserURLs(context.Background(), deleteRequests)
 		}
 	}()
-}
-
-func (ds *DeleteServiceImpl) StopWorker() {
-	ds.flushTicker.Stop()
 }
 
 func fanIn(deleteChs ...chan models.UserDeleteRequest) chan models.UserDeleteRequest {

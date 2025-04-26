@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/afero"
 )
 
-type ShortIDMap map[string]string
+type URLMapping map[string]string
 
 type ShortenedURLInfo struct {
 	UserID    int
@@ -21,9 +21,9 @@ type ShortenedURLInfo struct {
 type Repository interface {
 	GetFullURL(ctx context.Context, shortID string) (shortenedURLInfo *ShortenedURLInfo, ok bool)
 	SaveEntry(ctx context.Context, userID int, shortID string, fullURL string) error
-	SaveEntries(ctx context.Context, userID int, shortIDMap ShortIDMap) error
+	SaveEntries(ctx context.Context, userID int, shortIDMap URLMapping) error
 	GetShortID(ctx context.Context, fullURL string) (shortID string, err error)
-	GetUserEntries(ctx context.Context, userID int) (shortIDMap ShortIDMap, err error)
+	GetUserEntries(ctx context.Context, userID int) (shortIDMap URLMapping, err error)
 	GetNewUserID(ctx context.Context) (userID int, err error)
 	DeleteUserURLs(ctx context.Context, deleteRequests []models.UserDeleteRequest) error
 	Ping(ctx context.Context) error

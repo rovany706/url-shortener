@@ -59,8 +59,9 @@ func TestRedirectHandler(t *testing.T) {
 			rctx := chi.NewRouteContext()
 			rctx.URLParams.Add("id", tt.requestID)
 			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
+			redirectHandlers := NewRedirectHandlers(shortener)
 
-			RedirectHandler(shortener)(w, request)
+			redirectHandlers.RedirectHandler()(w, request)
 
 			result := w.Result()
 			defer result.Body.Close()

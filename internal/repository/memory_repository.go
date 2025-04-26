@@ -45,7 +45,7 @@ func (r *MemoryRepository) Ping(ctx context.Context) error {
 	return ErrPingNotSupported
 }
 
-func (r *MemoryRepository) SaveEntries(ctx context.Context, userID int, shortIDMap ShortIDMap) error {
+func (r *MemoryRepository) SaveEntries(ctx context.Context, userID int, shortIDMap URLMapping) error {
 	for shortID, fullURL := range shortIDMap {
 		err := r.SaveEntry(ctx, userID, shortID, fullURL)
 
@@ -69,7 +69,7 @@ func (r *MemoryRepository) GetShortID(ctx context.Context, fullURL string) (shor
 	return
 }
 
-func (r *MemoryRepository) GetUserEntries(ctx context.Context, userID int) (shortIDMap ShortIDMap, err error) {
+func (r *MemoryRepository) GetUserEntries(ctx context.Context, userID int) (shortIDMap URLMapping, err error) {
 	return nil, ErrNotImplemented
 }
 

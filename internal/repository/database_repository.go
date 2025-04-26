@@ -94,7 +94,7 @@ func (repository *DatabaseRepository) GetShortID(ctx context.Context, fullURL st
 	return
 }
 
-func (repository *DatabaseRepository) GetUserEntries(ctx context.Context, userID int) (shortIDMap ShortIDMap, err error) {
+func (repository *DatabaseRepository) GetUserEntries(ctx context.Context, userID int) (shortIDMap URLMapping, err error) {
 	rows, err := repository.db.DBConnection.QueryContext(ctx, selectUserURLs, userID)
 
 	if err != nil {
@@ -103,7 +103,7 @@ func (repository *DatabaseRepository) GetUserEntries(ctx context.Context, userID
 
 	defer rows.Close()
 
-	shortIDMap = make(ShortIDMap, 0)
+	shortIDMap = make(URLMapping, 0)
 	for rows.Next() {
 		var userEntry struct {
 			shortID string
@@ -134,7 +134,7 @@ func (repository *DatabaseRepository) Ping(ctx context.Context) error {
 	return repository.db.DBConnection.PingContext(ctx)
 }
 
-func (repository *DatabaseRepository) SaveEntries(ctx context.Context, userID int, shortIDMap ShortIDMap) error {
+func (repository *DatabaseRepository) SaveEntries(ctx context.Context, userID int, shortIDMap URLMapping) error {
 	tx, err := repository.db.DBConnection.BeginTx(ctx, nil)
 	if err != nil {
 		return err

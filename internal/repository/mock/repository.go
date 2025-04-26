@@ -116,10 +116,10 @@ func (mr *MockRepositoryMockRecorder) GetShortID(ctx, fullURL any) *gomock.Call 
 }
 
 // GetUserEntries mocks base method.
-func (m *MockRepository) GetUserEntries(ctx context.Context, userID int) (repository.ShortIDMap, error) {
+func (m *MockRepository) GetUserEntries(ctx context.Context, userID int) (repository.URLMapping, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserEntries", ctx, userID)
-	ret0, _ := ret[0].(repository.ShortIDMap)
+	ret0, _ := ret[0].(repository.URLMapping)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -145,7 +145,7 @@ func (mr *MockRepositoryMockRecorder) Ping(ctx any) *gomock.Call {
 }
 
 // SaveEntries mocks base method.
-func (m *MockRepository) SaveEntries(ctx context.Context, userID int, shortIDMap repository.ShortIDMap) error {
+func (m *MockRepository) SaveEntries(ctx context.Context, userID int, shortIDMap repository.URLMapping) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveEntries", ctx, userID, shortIDMap)
 	ret0, _ := ret[0].(error)

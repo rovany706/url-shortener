@@ -55,6 +55,7 @@ func TestMakeShortURLHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			testLogger := zaptest.NewLogger(t)
 			var shortener app.URLShortener
 			if tt.wantErr {
 				shortener = &app.ErrMockURLShortener{}
@@ -62,7 +63,7 @@ func TestMakeShortURLHandler(t *testing.T) {
 				shortener = app.NewMockURLShortener(map[string]string{})
 			}
 
-			auth, err := auth.NewAppJWTAuthentication(nil)
+			tokenManager, err := auth.NewJWTTokenManager(nil)
 			require.NoError(t, err)
 
 			ctrl := gomock.NewController(t)
@@ -73,7 +74,8 @@ func TestMakeShortURLHandler(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tt.body))
 			w := httptest.NewRecorder()
 
-			MakeShortURLHandler(shortener, auth, repository, appConfig)(w, request)
+			shortenHandlers := NewShortenURLHandlers(shortener, tokenManager, repository, appConfig, testLogger)
+			shortenHandlers.MakeShortURLHandler()(w, request)
 			response := w.Result()
 
 			defer response.Body.Close()
@@ -162,7 +164,7 @@ func TestMakeShortURLHandlerJSON(t *testing.T) {
 			} else {
 				shortener = app.NewMockURLShortener(map[string]string{})
 			}
-			auth, err := auth.NewAppJWTAuthentication(nil)
+			tokenManager, err := auth.NewJWTTokenManager(nil)
 			require.NoError(t, err)
 
 			ctrl := gomock.NewController(t)
@@ -173,7 +175,8 @@ func TestMakeShortURLHandlerJSON(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, "/api/shorten", strings.NewReader(tt.body))
 			w := httptest.NewRecorder()
 
-			MakeShortURLHandlerJSON(shortener, appConfig, auth, repository, testLogger)(w, request)
+			shortenHandlers := NewShortenURLHandlers(shortener, tokenManager, repository, appConfig, testLogger)
+			shortenHandlers.MakeShortURLHandlerJSON()(w, request)
 			response := w.Result()
 
 			defer response.Body.Close()
