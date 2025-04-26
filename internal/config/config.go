@@ -23,7 +23,7 @@ const (
 	defaultAppRunAddress   = ":8080"
 	defaultLogLevel        = "info"
 	defaultFileStoragePath = ""
-	defaultDatabaseDSN     = "postgresql://app@localhost/db"
+	defaultDatabaseDSN     = ""
 )
 
 type StorageType int
