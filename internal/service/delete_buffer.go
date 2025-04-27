@@ -33,10 +33,3 @@ func (db *DeleteRequestBuffer) Flush() []chan models.UserDeleteRequest {
 
 	return requests
 }
-
-func (db *DeleteRequestBuffer) Len() int {
-	db.mutex.RLock()
-	defer db.mutex.RUnlock()
-
-	return len(db.buffer)
-}

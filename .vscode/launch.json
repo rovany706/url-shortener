@@ -10,7 +10,7 @@
             "request": "launch",
             "mode": "debug",
             "program": "${workspaceFolder}/cmd/shortener",
-            "args": ["-d", "postgresql://app:example@localhost:5432/shortenerdb"]
+            "args": ["-d", "postgresql://app:example@localhost:5432/shortenerdb", "-p", "true"]
             //"args": ["-f", "storage.json"]
         },
         {

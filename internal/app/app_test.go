@@ -117,3 +117,18 @@ func TestGetShortID(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkGetShortID(b *testing.B) {
+	fullURL := "http://example.com"
+	ctx := context.Background()
+	ctrl := gomock.NewController(b)
+	defer ctrl.Finish()
+	repository := mock.NewMockRepository(ctrl)
+	repository.EXPECT().SaveEntry(gomock.Any(), gomock.Any(), gomock.Any(), fullURL).Return(nil).AnyTimes()
+	app := NewURLShortenerApp(repository)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		app.GetShortID(ctx, 1, fullURL)
+	}
+}

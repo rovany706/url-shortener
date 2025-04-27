@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/rovany706/url-shortener/internal/app"
 	"github.com/rovany706/url-shortener/internal/auth"
 	"github.com/rovany706/url-shortener/internal/config"
@@ -58,6 +59,11 @@ func (server *Server) RunServer() error {
 	redirectHandlers := handlers.NewRedirectHandlers(server.app)
 	shortenHandlers := handlers.NewShortenURLHandlers(server.app, server.tokenManager, server.repository, server.appConfig, server.logger)
 	r := router.GetRouter(shortenHandlers, userHandlers, redirectHandlers, server.repository, server.logger)
+
+	// comment out gzip middlewares to work
+	if server.appConfig.EnableProfiling {
+		r.Mount("/debug", middleware.Profiler())
+	}
 
 	return http.ListenAndServe(server.appConfig.AppRunAddress, r)
 }

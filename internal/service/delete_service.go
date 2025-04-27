@@ -11,8 +11,6 @@ import (
 
 const (
 	deleteFlushTimePeriod = time.Second * 10
-	fanInChanCapacity     = 10
-	timeout               = time.Second * 10
 )
 
 type DeleteService interface {

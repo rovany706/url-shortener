@@ -10,6 +10,7 @@ import (
 
 func GetRouter(shortenHandlers handlers.ShortenURLHandlers, userHandlers handlers.UserHandlers, redirectHandlers handlers.RedirectHandlers, repository repository.Repository, logger *zap.Logger) chi.Router {
 	r := chi.NewRouter()
+
 	r.Use(middleware.ResponseLogger(logger))
 	r.Use(middleware.RequestLogger(logger))
 	r.Use(middleware.RequestGzipCompress())

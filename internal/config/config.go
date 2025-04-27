@@ -24,6 +24,7 @@ const (
 	defaultLogLevel        = "info"
 	defaultFileStoragePath = ""
 	defaultDatabaseDSN     = ""
+	defaultProfiling       = false
 )
 
 type StorageType int
@@ -40,6 +41,7 @@ type AppConfig struct {
 	LogLevel        string `env:"LOG_LEVEL"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
 	DatabaseDSN     string `env:"DATABASE_DSN"`
+	EnableProfiling bool   `env:"PPROF"`
 	StorageType     StorageType
 }
 
@@ -91,6 +93,12 @@ func WithStorageType(storageType StorageType) Option {
 	}
 }
 
+func WithProfiling() Option {
+	return func(c *AppConfig) {
+		c.EnableProfiling = true
+	}
+}
+
 func NewConfig(opts ...Option) *AppConfig {
 	cfg := &AppConfig{
 		BaseURL:         defaultBaseURL,
@@ -117,6 +125,7 @@ func ParseArgs(programName string, args []string) (appConfig *AppConfig, err err
 	flags.StringVar(&appConfig.LogLevel, "l", defaultLogLevel, fmt.Sprintf("log level (default: %s)", defaultLogLevel))
 	flags.StringVar(&appConfig.FileStoragePath, "f", defaultFileStoragePath, "file storage path")
 	flags.StringVar(&appConfig.DatabaseDSN, "d", defaultDatabaseDSN, "database DSN")
+	flags.BoolVar(&appConfig.EnableProfiling, "p", defaultProfiling, "enable pprof server at /debug")
 
 	err = flags.Parse(args)
 

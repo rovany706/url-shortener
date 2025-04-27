@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 
@@ -39,7 +40,8 @@ var (
 )
 
 type DatabaseRepository struct {
-	db *database.Database
+	db              *database.Database
+	insertEntryStmt *sql.Stmt
 }
 
 func NewDatabaseRepository(ctx context.Context, connString string) (Repository, error) {
@@ -52,6 +54,12 @@ func NewDatabaseRepository(ctx context.Context, connString string) (Repository, 
 	dbRepository := DatabaseRepository{db: db}
 
 	if err = dbRepository.db.EnsureCreated(ctx); err != nil {
+		return nil, err
+	}
+
+	dbRepository.insertEntryStmt, err = dbRepository.db.DBConnection.PrepareContext(ctx, insertEntrySQL)
+
+	if err != nil {
 		return nil, err
 	}
 
@@ -71,7 +79,8 @@ func (repository *DatabaseRepository) GetFullURL(ctx context.Context, shortID st
 }
 
 func (repository *DatabaseRepository) SaveEntry(ctx context.Context, userID int, shortID string, fullURL string) error {
-	_, err := repository.db.DBConnection.ExecContext(ctx, insertEntrySQL, shortID, fullURL, userID)
+	_, err := repository.insertEntryStmt.ExecContext(ctx, shortID, fullURL, userID)
+	//_, err := repository.db.DBConnection.ExecContext(ctx, insertEntrySQL, shortID, fullURL, userID)
 
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -127,6 +136,7 @@ func (repository *DatabaseRepository) GetUserEntries(ctx context.Context, userID
 }
 
 func (repository *DatabaseRepository) Close() error {
+	repository.insertEntryStmt.Close()
 	return repository.db.DBConnection.Close()
 }
 
