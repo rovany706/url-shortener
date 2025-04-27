@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// SetAuthCookie создает JWT-токен и записывает его в виде cookie
 func SetAuthCookie(tokenManager TokenManager, w http.ResponseWriter, userID int, logger *zap.Logger) error {
 	token, err := tokenManager.CreateToken(userID)
 	if err != nil {

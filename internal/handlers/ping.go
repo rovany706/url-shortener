@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// PingHandler хэндлер для проверки подключения к БД
 func PingHandler(repository repository.Repository, logger *zap.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := repository.Ping(r.Context())

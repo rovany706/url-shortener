@@ -17,6 +17,7 @@ func NewRedirectHandlers(app app.URLShortener) RedirectHandlers {
 	}
 }
 
+// RedirectHandler хэндлер перенаправления сокращенной ссылки
 func (h *RedirectHandlers) RedirectHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		shortID := chi.URLParam(r, "id")

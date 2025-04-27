@@ -13,9 +13,12 @@ import (
 )
 
 var (
-	ErrInvalidBaseURL       = errors.New("invalid base URL")
+	// ErrInvalidBaseURL ошибка валидации базового URL
+	ErrInvalidBaseURL = errors.New("invalid base URL")
+	// ErrInvalidAppRunAddress ошибка валидации адреса для запуска сервера
 	ErrInvalidAppRunAddress = errors.New("invalid address and port to run server")
-	ErrInvalidLogLevel      = errors.New("invalid log level")
+	// ErrInvalidLogLevel ошибка валидации уровня логгирования
+	ErrInvalidLogLevel = errors.New("invalid log level")
 )
 
 const (
@@ -27,26 +30,39 @@ const (
 	defaultProfiling       = false
 )
 
+// StorageType тип хранилища данных сервиса
 type StorageType int
 
 const (
+	// None значение по умолчанию
 	None StorageType = iota
+	// File файловое хранилище
 	File
+	// Database хранение в базе данных
 	Database
 )
 
+// AppConfig содержит конфигурацию сервиса
 type AppConfig struct {
-	BaseURL         string `env:"BASE_URL"`
-	AppRunAddress   string `env:"SERVER_ADDRESS"`
-	LogLevel        string `env:"LOG_LEVEL"`
+	// BaseURL базовый URL для сокращенных ссылок
+	BaseURL string `env:"BASE_URL"`
+	// AppRunAddress адрес для запуска сервера
+	AppRunAddress string `env:"SERVER_ADDRESS"`
+	// LogLevel уровень логгирования
+	LogLevel string `env:"LOG_LEVEL"`
+	// FileStoragePath путь файлового хранилища
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
-	DatabaseDSN     string `env:"DATABASE_DSN"`
-	EnableProfiling bool   `env:"PPROF"`
-	StorageType     StorageType
+	// DatabaseDSN строка подключения к БД
+	DatabaseDSN string `env:"DATABASE_DSN"`
+	// EnableProfiling флаг включения режима профилирования
+	EnableProfiling bool `env:"PPROF"`
+	// StorageType тип хранилища
+	StorageType StorageType
 }
 
 type Option func(*AppConfig)
 
+// WithBaseURL задает базовый URL для сокращенных ссылок
 func WithBaseURL(url string) Option {
 	return func(c *AppConfig) {
 		if url != "" {
@@ -55,6 +71,7 @@ func WithBaseURL(url string) Option {
 	}
 }
 
+// WithAppRunAddress задает адрес для запуска сервера
 func WithAppRunAddress(appRunAddress string) Option {
 	return func(c *AppConfig) {
 		if appRunAddress != "" {
@@ -63,6 +80,7 @@ func WithAppRunAddress(appRunAddress string) Option {
 	}
 }
 
+// WithLogLevel задает уровень логгирования
 func WithLogLevel(logLevel string) Option {
 	return func(c *AppConfig) {
 		if logLevel != "" {
@@ -71,6 +89,7 @@ func WithLogLevel(logLevel string) Option {
 	}
 }
 
+// WithFileStoragePath задает путь файлового хранилища
 func WithFileStoragePath(fileStoragePath string) Option {
 	return func(c *AppConfig) {
 		if fileStoragePath != "" {
@@ -79,6 +98,7 @@ func WithFileStoragePath(fileStoragePath string) Option {
 	}
 }
 
+// WithDatabseDSN задает строку подключения к БД
 func WithDatabseDSN(databaseDSN string) Option {
 	return func(c *AppConfig) {
 		if databaseDSN != "" {
@@ -87,18 +107,22 @@ func WithDatabseDSN(databaseDSN string) Option {
 	}
 }
 
+// WithStorageType задает тип хранилища
 func WithStorageType(storageType StorageType) Option {
 	return func(c *AppConfig) {
 		c.StorageType = storageType
 	}
 }
 
+// WithProfiling задает режим профилирования
 func WithProfiling() Option {
 	return func(c *AppConfig) {
 		c.EnableProfiling = true
 	}
 }
 
+// NewConfig создает экземпляр конфига.
+// Поля настраиваются методами With...()
 func NewConfig(opts ...Option) *AppConfig {
 	cfg := &AppConfig{
 		BaseURL:         defaultBaseURL,

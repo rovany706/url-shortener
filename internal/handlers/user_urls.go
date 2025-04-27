@@ -30,6 +30,7 @@ func NewUserHandlers(deleteService service.DeleteService, tokenManager auth.Toke
 	}
 }
 
+// GetUserURLsHandler возвращает пользователю список сокращенных им ссылок
 func (h *UserHandlers) GetUserURLsHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID, err := getUserIDFromRequest(r.Context(), h.tokenManager, h.repository, r)
@@ -90,6 +91,7 @@ func (h *UserHandlers) GetUserURLsHandler() http.HandlerFunc {
 	}
 }
 
+// DeleteUserURLsHandler принимает запросы на удаление сокращенных ссылкок
 func (h *UserHandlers) DeleteUserURLsHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID, err := getUserIDFromRequest(r.Context(), h.tokenManager, h.repository, r)

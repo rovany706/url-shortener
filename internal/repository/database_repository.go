@@ -39,11 +39,13 @@ var (
 		database.ShortLinksTableName)
 )
 
+// DatabaseRepository репозиторий, использующий БД
 type DatabaseRepository struct {
 	db              *database.Database
 	insertEntryStmt *sql.Stmt
 }
 
+// NewDatabaseRepository инициирует подключение к БД
 func NewDatabaseRepository(ctx context.Context, connString string) (Repository, error) {
 	db, err := database.InitConnection(ctx, connString)
 
@@ -66,6 +68,7 @@ func NewDatabaseRepository(ctx context.Context, connString string) (Repository, 
 	return &dbRepository, nil
 }
 
+// GetFullURL возвращает сокращенную ссылку по shortID
 func (repository *DatabaseRepository) GetFullURL(ctx context.Context, shortID string) (shortenedURLInfo *ShortenedURLInfo, ok bool) {
 	shortenedURLInfo = &ShortenedURLInfo{}
 	row := repository.db.DBConnection.QueryRowContext(ctx, selectFullURLSQL, shortID)
@@ -78,6 +81,7 @@ func (repository *DatabaseRepository) GetFullURL(ctx context.Context, shortID st
 	return shortenedURLInfo, true
 }
 
+// SaveEntry записывает сокращаемую ссылку по shortID
 func (repository *DatabaseRepository) SaveEntry(ctx context.Context, userID int, shortID string, fullURL string) error {
 	_, err := repository.insertEntryStmt.ExecContext(ctx, shortID, fullURL, userID)
 	//_, err := repository.db.DBConnection.ExecContext(ctx, insertEntrySQL, shortID, fullURL, userID)
@@ -92,6 +96,7 @@ func (repository *DatabaseRepository) SaveEntry(ctx context.Context, userID int,
 	return err
 }
 
+// GetShortID возвращает shortID сокращенной ссылки
 func (repository *DatabaseRepository) GetShortID(ctx context.Context, fullURL string) (shortID string, err error) {
 	row := repository.db.DBConnection.QueryRowContext(ctx, selectShortIDSQL, fullURL)
 	err = row.Scan(&shortID)
@@ -103,6 +108,7 @@ func (repository *DatabaseRepository) GetShortID(ctx context.Context, fullURL st
 	return
 }
 
+// GetUserEntries возвращает сокращенный пользователем ссылки по userID
 func (repository *DatabaseRepository) GetUserEntries(ctx context.Context, userID int) (shortIDMap URLMapping, err error) {
 	rows, err := repository.db.DBConnection.QueryContext(ctx, selectUserURLs, userID)
 
@@ -124,7 +130,7 @@ func (repository *DatabaseRepository) GetUserEntries(ctx context.Context, userID
 			return nil, err
 		}
 
-		shortIDMap[userEntry.shortID] = userEntry.fullURL
+		shortIDMap[(userEntry.shortID)] = userEntry.fullURL
 	}
 
 	err = rows.Err()
@@ -135,15 +141,18 @@ func (repository *DatabaseRepository) GetUserEntries(ctx context.Context, userID
 	return shortIDMap, nil
 }
 
+// Close закрывает подключение к БД
 func (repository *DatabaseRepository) Close() error {
 	repository.insertEntryStmt.Close()
 	return repository.db.DBConnection.Close()
 }
 
+// Ping проверяет подключение к БД
 func (repository *DatabaseRepository) Ping(ctx context.Context) error {
 	return repository.db.DBConnection.PingContext(ctx)
 }
 
+// SaveEntries записывает набор сокращенных ссылок в БД
 func (repository *DatabaseRepository) SaveEntries(ctx context.Context, userID int, shortIDMap URLMapping) error {
 	tx, err := repository.db.DBConnection.BeginTx(ctx, nil)
 	if err != nil {
@@ -162,6 +171,8 @@ func (repository *DatabaseRepository) SaveEntries(ctx context.Context, userID in
 
 	return tx.Commit()
 }
+
+// GetNewUserID возвращает ID нового пользователя
 func (repository *DatabaseRepository) GetNewUserID(ctx context.Context) (userID int, err error) {
 	row := repository.db.DBConnection.QueryRowContext(ctx, insertNewUser)
 
@@ -174,6 +185,7 @@ func (repository *DatabaseRepository) GetNewUserID(ctx context.Context) (userID 
 	return userID, nil
 }
 
+// DeleteUserURLs удаляет набор сокращенных ссылок
 func (repository *DatabaseRepository) DeleteUserURLs(ctx context.Context, deleteRequests []models.UserDeleteRequest) error {
 	tx, err := repository.db.DBConnection.BeginTx(ctx, nil)
 	if err != nil {

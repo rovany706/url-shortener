@@ -31,10 +31,12 @@ var CreateTablesSQL = fmt.Sprintf(
 	);`,
 	UsersTableName, ShortLinksTableName)
 
+// Database хранит подключение к БД
 type Database struct {
 	DBConnection *sql.DB
 }
 
+// InitConnection инициализирует подключение к БД
 func InitConnection(ctx context.Context, connString string) (*Database, error) {
 	dbConnection, err := sql.Open("pgx", connString)
 	if err != nil {
@@ -47,6 +49,7 @@ func InitConnection(ctx context.Context, connString string) (*Database, error) {
 	return &db, nil
 }
 
+// EnsureCreated создает необходимые для работы таблицы
 func (db *Database) EnsureCreated(ctx context.Context) error {
 	result := true
 

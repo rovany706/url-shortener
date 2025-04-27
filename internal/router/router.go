@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// GetRouter возвращает роутер сервиса
 func GetRouter(
 	shortenHandlers handlers.ShortenURLHandlers,
 	userHandlers handlers.UserHandlers,

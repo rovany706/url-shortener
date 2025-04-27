@@ -8,18 +8,26 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// TokenExpiryTime срок годности токена
 const TokenExpiryTime = time.Hour * 24
+
+// AuthCookieName cookie-ключ токена
 const AuthCookieName = "token"
 
+// TokenManager интерфейс менеджера токенов аутентификации
 type TokenManager interface {
 	GetClaimsFromToken(tokenString string) (*Claims, error)
 	CreateToken(userID int) (string, error)
 }
 
+// JWTTokenManager реализует TokenManager и использует для работы JWT-токены
 type JWTTokenManager struct {
 	secretKey []byte
 }
 
+// NewJWTTokenManager создает экземпляр JWTTokenManager.
+// secretKey - последовательность байт (ключ), используемая для подписи токенов,
+// может быть nil для генерации случайного ключа.
 func NewJWTTokenManager(secretKey []byte) (*JWTTokenManager, error) {
 	var err error
 	if secretKey == nil {
@@ -45,6 +53,7 @@ func generateSecretKey() ([]byte, error) {
 	return b, nil
 }
 
+// CreateToken создает JWT-токен для пользователя с userID
 func (auth *JWTTokenManager) CreateToken(userID int) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -62,6 +71,8 @@ func (auth *JWTTokenManager) CreateToken(userID int) (string, error) {
 	return tokenString, nil
 }
 
+// GetClaimsFromToken читает и валидирует JWT-токен.
+// Возвращает полезную нагрузку токена.
 func (auth *JWTTokenManager) GetClaimsFromToken(tokenString string) (*Claims, error) {
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
