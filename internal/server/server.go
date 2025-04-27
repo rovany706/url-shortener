@@ -55,10 +55,31 @@ func (server *Server) RunServer() error {
 	defer cancel()
 	server.deleteService.StartWorker(ctx)
 
-	userHandlers := handlers.NewUserHandlers(server.deleteService, server.tokenManager, server.repository, server.appConfig, server.logger)
+	userHandlers := handlers.NewUserHandlers(
+		server.deleteService,
+		server.tokenManager,
+		server.repository,
+		server.appConfig,
+		server.logger,
+	)
+
 	redirectHandlers := handlers.NewRedirectHandlers(server.app)
-	shortenHandlers := handlers.NewShortenURLHandlers(server.app, server.tokenManager, server.repository, server.appConfig, server.logger)
-	r := router.GetRouter(shortenHandlers, userHandlers, redirectHandlers, server.repository, server.logger)
+
+	shortenHandlers := handlers.NewShortenURLHandlers(
+		server.app,
+		server.tokenManager,
+		server.repository,
+		server.appConfig,
+		server.logger,
+	)
+
+	r := router.GetRouter(
+		shortenHandlers,
+		userHandlers,
+		redirectHandlers,
+		server.repository,
+		server.logger,
+	)
 
 	// comment out gzip middlewares to work
 	if server.appConfig.EnableProfiling {
