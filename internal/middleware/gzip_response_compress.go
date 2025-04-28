@@ -18,23 +18,28 @@ func newCompressWriter(w http.ResponseWriter) *compressWriter {
 	}
 }
 
+// Header возвращает заголовок запроса
 func (c *compressWriter) Header() http.Header {
 	return c.w.Header()
 }
 
+// WriteHeader отправляет HTTP-код
 func (c *compressWriter) WriteHeader(statusCode int) {
 	c.w.Header().Set("Content-Encoding", "gzip")
 	c.w.WriteHeader(statusCode)
 }
 
+// Write записывает сжатые данные
 func (c *compressWriter) Write(p []byte) (int, error) {
 	return c.zw.Write(p)
 }
 
+// Close закрывает writer
 func (c *compressWriter) Close() error {
 	return c.zw.Close()
 }
 
+// ResponseGzipCompress middleware для сжатия ответа
 func ResponseGzipCompress() func(h http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {

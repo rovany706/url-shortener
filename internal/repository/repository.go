@@ -26,9 +26,9 @@ type ShortenedURLInfo struct {
 
 // Repository интерфейс работы с данными сервиса
 type Repository interface {
-	// GetFullURL возвращает сокращенную ссылку по shortID
+	// GetFullURL ищет в хранилище полную ссылку на ресурс по короткому ID
 	GetFullURL(ctx context.Context, shortID string) (shortenedURLInfo *ShortenedURLInfo, ok bool)
-	// SaveEntry записывает сокращаемую ссылку по shortID
+	// SaveEntry сохраняет в хранилище информацию о сокращенной ссылке
 	SaveEntry(ctx context.Context, userID int, shortID string, fullURL string) error
 	// SaveEntries записывает набор сокращенных ссылок
 	SaveEntries(ctx context.Context, userID int, shortIDMap URLMapping) error
@@ -47,12 +47,17 @@ type Repository interface {
 }
 
 var (
+	// ErrUnknownStorageType ошибка неизвестного типа хранилища
 	ErrUnknownStorageType = errors.New("unknown storage type")
-	ErrPingNotSupported   = errors.New("ping is not supported for this storage type")
-	ErrConflict           = errors.New("entry conflict")
-	ErrNotImplemented     = errors.New("method is not implemented")
+	// ErrPingNotSupported ошибка отсутствия поддержки метода Ping
+	ErrPingNotSupported = errors.New("ping is not supported for this storage type")
+	// ErrConflict ошибка конфликта записей
+	ErrConflict = errors.New("entry conflict")
+	// ErrNotImplemented ошибка нереализованного метода
+	ErrNotImplemented = errors.New("method is not implemented")
 )
 
+// NewAppRepository создает репозиторий по типу хранилища из конфига
 func NewAppRepository(ctx context.Context, appConfig *config.AppConfig) (Repository, error) {
 	switch appConfig.StorageType {
 	case config.Database:

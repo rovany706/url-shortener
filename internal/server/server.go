@@ -15,6 +15,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Server сервер приложения
 type Server struct {
 	appConfig     *config.AppConfig
 	app           app.URLShortener
@@ -24,6 +25,7 @@ type Server struct {
 	logger        *zap.Logger
 }
 
+// NewServer инициализирует работу сервера
 func NewServer(appConfig *config.AppConfig, logger *zap.Logger) (*Server, error) {
 	repository, err := repository.NewAppRepository(context.Background(), appConfig)
 	if err != nil {
@@ -50,6 +52,7 @@ func NewServer(appConfig *config.AppConfig, logger *zap.Logger) (*Server, error)
 	}, nil
 }
 
+// RunServer зупаскает сервер
 func (server *Server) RunServer() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -89,6 +92,7 @@ func (server *Server) RunServer() error {
 	return http.ListenAndServe(server.appConfig.AppRunAddress, r)
 }
 
+// StopServer завершает работу сервера
 func (server *Server) StopServer() {
 	server.repository.Close()
 }

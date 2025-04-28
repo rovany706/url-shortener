@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Ошибки
 var (
 	// ErrInvalidBaseURL ошибка валидации базового URL
 	ErrInvalidBaseURL = errors.New("invalid base URL")
@@ -33,6 +34,7 @@ const (
 // StorageType тип хранилища данных сервиса
 type StorageType int
 
+// Перечисление типов хранилища
 const (
 	// None значение по умолчанию
 	None StorageType = iota
@@ -60,6 +62,7 @@ type AppConfig struct {
 	StorageType StorageType
 }
 
+// Option функциональная опция
 type Option func(*AppConfig)
 
 // WithBaseURL задает базовый URL для сокращенных ссылок
@@ -139,7 +142,7 @@ func NewConfig(opts ...Option) *AppConfig {
 	return cfg
 }
 
-// Метод ParseArgs парсит параметры командной строки и возвращает указатель на объект AppConfig с заполненными значениями конфигурации
+// ParseArgs парсит параметры командной строки и возвращает указатель на объект AppConfig с заполненными значениями конфигурации
 func ParseArgs(programName string, args []string) (appConfig *AppConfig, err error) {
 	appConfig = new(AppConfig)
 	flags := flag.NewFlagSet(programName, flag.ExitOnError)

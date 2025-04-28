@@ -39,7 +39,8 @@ func ExamplePingHandler() {
 	http.HandleFunc("/ping", handler)
 
 	// Example of sending request:
-	http.Get("http://service:8080/ping")
+	resp, _ := http.Get("http://service:8080/ping")
+	resp.Body.Close()
 }
 
 func ExampleRedirectHandlers_RedirectHandler() {
@@ -51,7 +52,8 @@ func ExampleRedirectHandlers_RedirectHandler() {
 	http.HandleFunc("/{id}", handler)
 
 	// Example of sending request:
-	http.Get("http://service:8080/488575e6")
+	resp, _ := http.Get("http://service:8080/488575e6")
+	resp.Body.Close()
 }
 
 func ExampleShortenURLHandlers_MakeShortURLHandler() {
@@ -69,7 +71,8 @@ func ExampleShortenURLHandlers_MakeShortURLHandler() {
 
 	// Example of sending request:
 	requestBody := "http://example.com"
-	http.Post("http://service:8080/", "text/plain", strings.NewReader(requestBody))
+	resp, _ := http.Post("http://service:8080/", "text/plain", strings.NewReader(requestBody))
+	resp.Body.Close()
 }
 
 func ExampleShortenURLHandlers_MakeShortURLHandlerJSON() {
@@ -87,7 +90,8 @@ func ExampleShortenURLHandlers_MakeShortURLHandlerJSON() {
 
 	// Example of sending request:
 	requestBody := `{"url": "https://practicum.yandex.ru"}`
-	http.Post("http://service:8080/api/shorten", "application/json", strings.NewReader(requestBody))
+	resp, _ := http.Post("http://service:8080/api/shorten", "application/json", strings.NewReader(requestBody))
+	resp.Body.Close()
 }
 
 func ExampleShortenURLHandlers_MakeShortURLBatchHandler() {
@@ -120,7 +124,8 @@ func ExampleShortenURLHandlers_MakeShortURLBatchHandler() {
   }
 ]
 	`
-	http.Post("http://service:8080/api/shorten/batch", "application/json", strings.NewReader(requestBody))
+	resp, _ := http.Post("http://service:8080/api/shorten/batch", "application/json", strings.NewReader(requestBody))
+	resp.Body.Close()
 }
 
 func ExampleUserHandlers_GetUserURLsHandler() {
@@ -151,7 +156,8 @@ func ExampleUserHandlers_GetUserURLsHandler() {
 		Jar: jar,
 	}
 
-	client.Get("http://service:8080/api/user/urls")
+	resp, _ := client.Get("http://service:8080/api/user/urls")
+	resp.Body.Close()
 }
 
 func ExampleUserHandlers_DeleteUserURLsHandler() {
@@ -184,5 +190,6 @@ func ExampleUserHandlers_DeleteUserURLsHandler() {
 	requestBody := `["67b00967", "595c3cce"]`
 
 	request, _ := http.NewRequest(http.MethodDelete, "http://service:8080/api/user/urls", strings.NewReader(requestBody))
-	client.Do(request)
+	resp, _ := client.Do(request)
+	resp.Body.Close()
 }

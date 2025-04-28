@@ -15,6 +15,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// ShortenURLHandlers обработчики методов сокращения
 type ShortenURLHandlers struct {
 	app          app.URLShortener
 	tokenManager auth.TokenManager
@@ -23,6 +24,7 @@ type ShortenURLHandlers struct {
 	logger       *zap.Logger
 }
 
+// NewShortenURLHandlers создает ShortenURLHandlers
 func NewShortenURLHandlers(app app.URLShortener, tokenManager auth.TokenManager, repository repository.Repository, appConfig *config.AppConfig, logger *zap.Logger) ShortenURLHandlers {
 	return ShortenURLHandlers{
 		app:          app,

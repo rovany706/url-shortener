@@ -7,10 +7,12 @@ import (
 	"github.com/rovany706/url-shortener/internal/app"
 )
 
+// RedirectHandlers обработчики методов перенаправления
 type RedirectHandlers struct {
 	app app.URLShortener
 }
 
+// NewRedirectHandlers создает RedirectHandlers
 func NewRedirectHandlers(app app.URLShortener) RedirectHandlers {
 	return RedirectHandlers{
 		app: app,

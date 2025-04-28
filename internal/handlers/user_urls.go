@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// UserHandlers обработчики пользовательских методов
 type UserHandlers struct {
 	appConfig     *config.AppConfig
 	logger        *zap.Logger
@@ -20,6 +21,7 @@ type UserHandlers struct {
 	deleteService service.DeleteService
 }
 
+// NewUserHandlers создает UserHandlers
 func NewUserHandlers(deleteService service.DeleteService, tokenManager auth.TokenManager, repository repository.Repository, appConfig *config.AppConfig, logger *zap.Logger) UserHandlers {
 	return UserHandlers{
 		appConfig:     appConfig,
