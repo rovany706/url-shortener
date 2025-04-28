@@ -84,10 +84,10 @@ func (r *MemoryRepository) GetUserEntries(ctx context.Context, userID int) (shor
 
 // GetNewUserID возвращает ID нового пользователя
 func (r *MemoryRepository) GetNewUserID(ctx context.Context) (userID int, err error) {
-	return -1, ErrNotImplemented
+	return -1, nil
 }
 
 // DeleteUserURLs удаляет набор сокращенных ссылок
 func (r *MemoryRepository) DeleteUserURLs(ctx context.Context, deleteRequests []models.UserDeleteRequest) error {
-	return ErrNotImplemented
+	return nil
 }

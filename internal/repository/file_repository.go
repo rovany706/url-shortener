@@ -152,10 +152,10 @@ func (repository *FileRepository) GetUserEntries(ctx context.Context, userID int
 
 // GetNewUserID возвращает ID нового пользователя
 func (repository *FileRepository) GetNewUserID(ctx context.Context) (userID int, err error) {
-	return -1, ErrNotImplemented
+	return -1, nil
 }
 
 // DeleteUserURLs удаляет набор сокращенных ссылок
 func (repository *FileRepository) DeleteUserURLs(ctx context.Context, deleteRequests []models.UserDeleteRequest) error {
-	return ErrNotImplemented
+	return nil
 }

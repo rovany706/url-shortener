@@ -68,7 +68,7 @@ func NewDatabaseRepository(ctx context.Context, connString string) (Repository, 
 	return &dbRepository, nil
 }
 
-// GetFullURL возвращает сокращенную ссылку по shortID
+// GetFullURL ищет в хранилище полную ссылку на ресурс по короткому ID
 func (repository *DatabaseRepository) GetFullURL(ctx context.Context, shortID string) (shortenedURLInfo *ShortenedURLInfo, ok bool) {
 	shortenedURLInfo = &ShortenedURLInfo{}
 	row := repository.db.DBConnection.QueryRowContext(ctx, selectFullURLSQL, shortID)
@@ -81,7 +81,7 @@ func (repository *DatabaseRepository) GetFullURL(ctx context.Context, shortID st
 	return shortenedURLInfo, true
 }
 
-// SaveEntry записывает сокращаемую ссылку по shortID
+// SaveEntry сохраняет в хранилище информацию о сокращенной ссылке
 func (repository *DatabaseRepository) SaveEntry(ctx context.Context, userID int, shortID string, fullURL string) error {
 	_, err := repository.insertEntryStmt.ExecContext(ctx, shortID, fullURL, userID)
 	//_, err := repository.db.DBConnection.ExecContext(ctx, insertEntrySQL, shortID, fullURL, userID)
