@@ -9,6 +9,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
+// Имена таблиц
 const (
 	// ShortLinksTableName имя таблицы сокращенных ссылок
 	ShortLinksTableName = "short_links"

@@ -46,6 +46,7 @@ type Repository interface {
 	Close() error
 }
 
+// Ошибки
 var (
 	// ErrUnknownStorageType ошибка неизвестного типа хранилища
 	ErrUnknownStorageType = errors.New("unknown storage type")
