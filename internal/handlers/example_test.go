@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -40,7 +41,11 @@ func ExamplePingHandler() {
 	http.HandleFunc("/ping", handler)
 
 	// Example of sending request:
-	resp, _ := http.Get("http://service:8080/ping")
+	resp, err := http.Get("http://service:8080/ping")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	resp.Body.Close()
 }
 
@@ -53,7 +58,11 @@ func ExampleRedirectHandlers_RedirectHandler() {
 	http.HandleFunc("/{id}", handler)
 
 	// Example of sending request:
-	resp, _ := http.Get("http://service:8080/488575e6")
+	resp, err := http.Get("http://service:8080/488575e6")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	resp.Body.Close()
 }
 
@@ -72,7 +81,11 @@ func ExampleShortenURLHandlers_MakeShortURLHandler() {
 
 	// Example of sending request:
 	requestBody := "http://example.com"
-	resp, _ := http.Post("http://service:8080/", "text/plain", strings.NewReader(requestBody))
+	resp, err := http.Post("http://service:8080/", "text/plain", strings.NewReader(requestBody))
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	resp.Body.Close()
 }
 
@@ -91,7 +104,11 @@ func ExampleShortenURLHandlers_MakeShortURLHandlerJSON() {
 
 	// Example of sending request:
 	requestBody := `{"url": "https://practicum.yandex.ru"}`
-	resp, _ := http.Post("http://service:8080/api/shorten", "application/json", strings.NewReader(requestBody))
+	resp, err := http.Post("http://service:8080/api/shorten", "application/json", strings.NewReader(requestBody))
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	resp.Body.Close()
 }
 
@@ -125,7 +142,11 @@ func ExampleShortenURLHandlers_MakeShortURLBatchHandler() {
   }
 ]
 	`
-	resp, _ := http.Post("http://service:8080/api/shorten/batch", "application/json", strings.NewReader(requestBody))
+	resp, err := http.Post("http://service:8080/api/shorten/batch", "application/json", strings.NewReader(requestBody))
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	resp.Body.Close()
 }
 
@@ -157,7 +178,11 @@ func ExampleUserHandlers_GetUserURLsHandler() {
 		Jar: jar,
 	}
 
-	resp, _ := client.Get("http://service:8080/api/user/urls")
+	resp, err := client.Get("http://service:8080/api/user/urls")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	resp.Body.Close()
 }
 
@@ -183,7 +208,11 @@ func ExampleUserHandlers_DeleteUserURLsHandler() {
 		Domain: "service:8080",
 	}
 
-	u, _ := url.Parse("http://service:8080")
+	u, err := url.Parse("http://service:8080")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	jar.SetCookies(u, []*http.Cookie{cookie})
 	client := &http.Client{
 		Jar: jar,
@@ -191,6 +220,10 @@ func ExampleUserHandlers_DeleteUserURLsHandler() {
 	requestBody := `["67b00967", "595c3cce"]`
 
 	request, _ := http.NewRequest(http.MethodDelete, "http://service:8080/api/user/urls", strings.NewReader(requestBody))
-	resp, _ := client.Do(request)
+	resp, err := client.Do(request)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	resp.Body.Close()
 }
