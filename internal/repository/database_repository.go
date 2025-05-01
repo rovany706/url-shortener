@@ -82,7 +82,8 @@ func (repository *DatabaseRepository) SaveEntry(ctx context.Context, userID int,
 	}
 	defer stmt.Close()
 
-	if _, err := stmt.ExecContext(ctx, shortID, fullURL, userID); err != nil {
+	_, err = stmt.ExecContext(ctx, shortID, fullURL, userID)
+	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) {
 			err = ErrConflict
