@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 
@@ -30,10 +29,10 @@ var (
 	selectUserURLs = fmt.Sprintf(
 		`SELECT short_id, full_url FROM %s
 		WHERE user_id = $1`, database.ShortLinksTableName)
-	insertNewUser = fmt.Sprintf(
+	insertNewUserSQL = fmt.Sprintf(
 		`INSERT INTO %s DEFAULT VALUES RETURNING id;`,
 		database.UsersTableName)
-	deleteShortLink = fmt.Sprintf(
+	deleteShortLinkSQL = fmt.Sprintf(
 		`UPDATE %s
 		SET is_deleted = true
 		WHERE short_id = $1 AND user_id = $2`,
@@ -42,8 +41,7 @@ var (
 
 // DatabaseRepository репозиторий, использующий БД
 type DatabaseRepository struct {
-	db              *database.Database
-	insertEntryStmt *sql.Stmt
+	db *database.Database
 }
 
 // NewDatabaseRepository инициирует подключение к БД
@@ -57,12 +55,6 @@ func NewDatabaseRepository(ctx context.Context, connString string) (Repository, 
 	dbRepository := DatabaseRepository{db: db}
 
 	if err = dbRepository.db.EnsureCreated(ctx); err != nil {
-		return nil, err
-	}
-
-	dbRepository.insertEntryStmt, err = dbRepository.db.DBConnection.PrepareContext(ctx, insertEntrySQL)
-
-	if err != nil {
 		return nil, err
 	}
 
@@ -84,10 +76,13 @@ func (repository *DatabaseRepository) GetFullURL(ctx context.Context, shortID st
 
 // SaveEntry сохраняет в хранилище информацию о сокращенной ссылке
 func (repository *DatabaseRepository) SaveEntry(ctx context.Context, userID int, shortID string, fullURL string) error {
-	_, err := repository.insertEntryStmt.ExecContext(ctx, shortID, fullURL, userID)
-	//_, err := repository.db.DBConnection.ExecContext(ctx, insertEntrySQL, shortID, fullURL, userID)
-
+	stmt, err := repository.db.DBConnection.PrepareContext(ctx, insertEntrySQL)
 	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	if _, err := stmt.ExecContext(ctx, shortID, fullURL, userID); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) {
 			err = ErrConflict
@@ -99,7 +94,13 @@ func (repository *DatabaseRepository) SaveEntry(ctx context.Context, userID int,
 
 // GetShortID возвращает shortID сокращенной ссылки
 func (repository *DatabaseRepository) GetShortID(ctx context.Context, fullURL string) (shortID string, err error) {
-	row := repository.db.DBConnection.QueryRowContext(ctx, selectShortIDSQL, fullURL)
+	stmt, err := repository.db.DBConnection.PrepareContext(ctx, selectShortIDSQL)
+	if err != nil {
+		return "", err
+	}
+	defer stmt.Close()
+
+	row := stmt.QueryRowContext(ctx, selectShortIDSQL, fullURL)
 	err = row.Scan(&shortID)
 
 	if err != nil {
@@ -111,7 +112,13 @@ func (repository *DatabaseRepository) GetShortID(ctx context.Context, fullURL st
 
 // GetUserEntries возвращает сокращенный пользователем ссылки по userID
 func (repository *DatabaseRepository) GetUserEntries(ctx context.Context, userID int) (shortIDMap URLMapping, err error) {
-	rows, err := repository.db.DBConnection.QueryContext(ctx, selectUserURLs, userID)
+	stmt, err := repository.db.DBConnection.PrepareContext(ctx, selectUserURLs)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.QueryContext(ctx, selectUserURLs, userID)
 
 	if err != nil {
 		return nil, err
@@ -144,7 +151,6 @@ func (repository *DatabaseRepository) GetUserEntries(ctx context.Context, userID
 
 // Close закрывает подключение к БД
 func (repository *DatabaseRepository) Close() error {
-	repository.insertEntryStmt.Close()
 	return repository.db.DBConnection.Close()
 }
 
@@ -162,8 +168,14 @@ func (repository *DatabaseRepository) SaveEntries(ctx context.Context, userID in
 
 	defer tx.Rollback()
 
+	stmt, err := tx.PrepareContext(ctx, selectUserURLs)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
 	for shortID, fullURL := range shortIDMap {
-		_, err := tx.ExecContext(ctx, insertEntrySQLBatch, shortID, fullURL, userID)
+		_, err := stmt.ExecContext(ctx, insertEntrySQLBatch, shortID, fullURL, userID)
 
 		if err != nil {
 			return err
@@ -175,7 +187,13 @@ func (repository *DatabaseRepository) SaveEntries(ctx context.Context, userID in
 
 // GetNewUserID возвращает ID нового пользователя
 func (repository *DatabaseRepository) GetNewUserID(ctx context.Context) (userID int, err error) {
-	row := repository.db.DBConnection.QueryRowContext(ctx, insertNewUser)
+	stmt, err := repository.db.DBConnection.PrepareContext(ctx, selectUserURLs)
+	if err != nil {
+		return -1, err
+	}
+	defer stmt.Close()
+
+	row := stmt.QueryRowContext(ctx, insertNewUserSQL)
 
 	err = row.Scan(&userID)
 
@@ -195,8 +213,14 @@ func (repository *DatabaseRepository) DeleteUserURLs(ctx context.Context, delete
 
 	defer tx.Rollback()
 
+	stmt, err := tx.PrepareContext(ctx, selectUserURLs)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
 	for _, request := range deleteRequests {
-		_, err = tx.ExecContext(ctx, deleteShortLink, request.ShortIDToDelete, request.UserID)
+		_, err = stmt.ExecContext(ctx, deleteShortLinkSQL, request.ShortIDToDelete, request.UserID)
 
 		if err != nil {
 			return err
