@@ -101,7 +101,7 @@ func (repository *DatabaseRepository) GetShortID(ctx context.Context, fullURL st
 	}
 	defer stmt.Close()
 
-	row := stmt.QueryRowContext(ctx, selectShortIDSQL, fullURL)
+	row := stmt.QueryRowContext(ctx, fullURL)
 	err = row.Scan(&shortID)
 
 	if err != nil {
@@ -119,7 +119,7 @@ func (repository *DatabaseRepository) GetUserEntries(ctx context.Context, userID
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.QueryContext(ctx, selectUserURLs, userID)
+	rows, err := stmt.QueryContext(ctx, userID)
 
 	if err != nil {
 		return nil, err
@@ -169,14 +169,14 @@ func (repository *DatabaseRepository) SaveEntries(ctx context.Context, userID in
 
 	defer tx.Rollback()
 
-	stmt, err := tx.PrepareContext(ctx, selectUserURLs)
+	stmt, err := tx.PrepareContext(ctx, insertEntrySQLBatch)
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
 	for shortID, fullURL := range shortIDMap {
-		_, err := stmt.ExecContext(ctx, insertEntrySQLBatch, shortID, fullURL, userID)
+		_, err := stmt.ExecContext(ctx, shortID, fullURL, userID)
 
 		if err != nil {
 			return err
@@ -188,13 +188,7 @@ func (repository *DatabaseRepository) SaveEntries(ctx context.Context, userID in
 
 // GetNewUserID возвращает ID нового пользователя
 func (repository *DatabaseRepository) GetNewUserID(ctx context.Context) (userID int, err error) {
-	stmt, err := repository.db.DBConnection.PrepareContext(ctx, selectUserURLs)
-	if err != nil {
-		return -1, err
-	}
-	defer stmt.Close()
-
-	row := stmt.QueryRowContext(ctx, insertNewUserSQL)
+	row := repository.db.DBConnection.QueryRowContext(ctx, insertNewUserSQL)
 
 	err = row.Scan(&userID)
 
@@ -214,14 +208,14 @@ func (repository *DatabaseRepository) DeleteUserURLs(ctx context.Context, delete
 
 	defer tx.Rollback()
 
-	stmt, err := tx.PrepareContext(ctx, selectUserURLs)
+	stmt, err := tx.PrepareContext(ctx, deleteShortLinkSQL)
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
 	for _, request := range deleteRequests {
-		_, err = stmt.ExecContext(ctx, deleteShortLinkSQL, request.ShortIDToDelete, request.UserID)
+		_, err = stmt.ExecContext(ctx, request.ShortIDToDelete, request.UserID)
 
 		if err != nil {
 			return err
