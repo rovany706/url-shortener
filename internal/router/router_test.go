@@ -8,17 +8,18 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
+
 	"github.com/rovany706/url-shortener/internal/app"
 	authMock "github.com/rovany706/url-shortener/internal/auth/mock"
 	"github.com/rovany706/url-shortener/internal/config"
 	"github.com/rovany706/url-shortener/internal/handlers"
 	"github.com/rovany706/url-shortener/internal/repository/mock"
 	serviceMock "github.com/rovany706/url-shortener/internal/service/mock"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/mock/gomock"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest/observer"
 )
 
 func gzipCompressString(s string) ([]byte, error) {

@@ -4,9 +4,10 @@ import (
 	"context"
 	"sync"
 
+	"github.com/spf13/afero"
+
 	"github.com/rovany706/url-shortener/internal/models"
 	"github.com/rovany706/url-shortener/internal/storage"
-	"github.com/spf13/afero"
 )
 
 // FileRepository репозиторий, использующий файл

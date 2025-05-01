@@ -13,8 +13,9 @@ import (
 	context "context"
 	reflect "reflect"
 
-	models "github.com/rovany706/url-shortener/internal/models"
 	gomock "go.uber.org/mock/gomock"
+
+	models "github.com/rovany706/url-shortener/internal/models"
 )
 
 // MockDeleteService is a mock of DeleteService interface.

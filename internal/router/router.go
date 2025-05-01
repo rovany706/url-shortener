@@ -2,10 +2,11 @@ package router
 
 import (
 	"github.com/go-chi/chi/v5"
+	"go.uber.org/zap"
+
 	"github.com/rovany706/url-shortener/internal/handlers"
 	"github.com/rovany706/url-shortener/internal/middleware"
 	"github.com/rovany706/url-shortener/internal/repository"
-	"go.uber.org/zap"
 )
 
 // GetRouter возвращает роутер сервиса

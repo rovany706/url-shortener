@@ -4,11 +4,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/rovany706/url-shortener/internal/repository"
-	"github.com/rovany706/url-shortener/internal/repository/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
+
+	"github.com/rovany706/url-shortener/internal/repository"
+	"github.com/rovany706/url-shortener/internal/repository/mock"
 )
 
 func TestGetFullURL(t *testing.T) {

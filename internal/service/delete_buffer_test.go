@@ -3,8 +3,9 @@ package service
 import (
 	"testing"
 
-	"github.com/rovany706/url-shortener/internal/models"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/rovany706/url-shortener/internal/models"
 )
 
 func BenchmarkDeleteBuffer(b *testing.B) {

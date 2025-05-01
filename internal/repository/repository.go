@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 
+	"github.com/spf13/afero"
+
 	"github.com/rovany706/url-shortener/internal/config"
 	"github.com/rovany706/url-shortener/internal/models"
-	"github.com/spf13/afero"
 )
 
 // URLMapping словарь идентификатора и сокращенной ссылки

@@ -3,10 +3,11 @@ package main
 import (
 	"os"
 
+	"go.uber.org/zap"
+
 	"github.com/rovany706/url-shortener/internal/config"
 	"github.com/rovany706/url-shortener/internal/logger"
 	"github.com/rovany706/url-shortener/internal/server"
-	"go.uber.org/zap"
 )
 
 var appConfig *config.AppConfig

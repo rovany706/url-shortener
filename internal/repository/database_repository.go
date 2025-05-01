@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
+
 	"github.com/rovany706/url-shortener/internal/database"
 	"github.com/rovany706/url-shortener/internal/models"
 )
