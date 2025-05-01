@@ -6,17 +6,20 @@ import (
 	"github.com/rovany706/url-shortener/internal/models"
 )
 
+// DeleteRequestBuffer буфер для хранения запросов на удаление укороченных ссылок
 type DeleteRequestBuffer struct {
 	buffer []chan models.UserDeleteRequest
 	mutex  sync.RWMutex
 }
 
+// NewDeleteBuffer создает экземпляр DeleteRequestBuffer
 func NewDeleteBuffer() *DeleteRequestBuffer {
 	return &DeleteRequestBuffer{
 		buffer: make([]chan models.UserDeleteRequest, 0),
 	}
 }
 
+// Add добавляет канал с запросом на удаление в буфер
 func (db *DeleteRequestBuffer) Add(request chan models.UserDeleteRequest) {
 	db.mutex.Lock()
 	defer db.mutex.Unlock()
@@ -24,6 +27,7 @@ func (db *DeleteRequestBuffer) Add(request chan models.UserDeleteRequest) {
 	db.buffer = append(db.buffer, request)
 }
 
+// Flush возвращает накопленные запросы и очищает буфер
 func (db *DeleteRequestBuffer) Flush() []chan models.UserDeleteRequest {
 	db.mutex.Lock()
 	defer db.mutex.Unlock()
@@ -32,11 +36,4 @@ func (db *DeleteRequestBuffer) Flush() []chan models.UserDeleteRequest {
 	db.buffer = nil
 
 	return requests
-}
-
-func (db *DeleteRequestBuffer) Len() int {
-	db.mutex.RLock()
-	defer db.mutex.RUnlock()
-
-	return len(db.buffer)
 }

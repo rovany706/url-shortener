@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// RequestLogger middleware логгирующий запросы
 func RequestLogger(logger *zap.Logger) func(h http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		logFn := func(w http.ResponseWriter, r *http.Request) {

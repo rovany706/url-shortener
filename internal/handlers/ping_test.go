@@ -6,10 +6,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/rovany706/url-shortener/internal/repository/mock"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 	"go.uber.org/zap/zaptest"
+
+	"github.com/rovany706/url-shortener/internal/repository/mock"
 )
 
 func TestPingHandler(t *testing.T) {

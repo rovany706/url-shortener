@@ -4,17 +4,20 @@ import (
 	"context"
 	"sync"
 
+	"github.com/spf13/afero"
+
 	"github.com/rovany706/url-shortener/internal/models"
 	"github.com/rovany706/url-shortener/internal/storage"
-	"github.com/spf13/afero"
 )
 
+// FileRepository репозиторий, использующий файл
 type FileRepository struct {
 	fs              afero.Fs
 	storageFilepath string
 	shortURLMap     *sync.Map
 }
 
+// NewFileRepository создает файл для хранения данных
 func NewFileRepository(fs afero.Fs, storageFilepath string) (*FileRepository, error) {
 	fileStorageReader, err := storage.NewFileStorageReader(fs, storageFilepath)
 
@@ -48,7 +51,7 @@ func initializeShortURLMap(storage storage.Storage) *sync.Map {
 	return &shortURLMap
 }
 
-// Метод GetFullURL ищет в хранилище полную ссылку на ресурс по короткому ID
+// GetFullURL ищет в хранилище полную ссылку на ресурс по короткому ID
 func (repository *FileRepository) GetFullURL(ctx context.Context, shortID string) (shortenedURLInfo *ShortenedURLInfo, ok bool) {
 	v, ok := repository.shortURLMap.Load(shortID)
 
@@ -65,7 +68,7 @@ func (repository *FileRepository) GetFullURL(ctx context.Context, shortID string
 	return shortenedURLInfo, ok
 }
 
-// Метод SaveEntry сохраняет в хранилище информацию о сокращенной ссылке
+// SaveEntry сохраняет в хранилище информацию о сокращенной ссылке
 func (repository *FileRepository) SaveEntry(ctx context.Context, userID int, shortID string, fullURL string) error {
 	_, exists := repository.shortURLMap.LoadOrStore(shortID, fullURL)
 
@@ -93,6 +96,7 @@ func (repository *FileRepository) saveNewEntry(shortID string, fullURL string) e
 	return storageWriter.WriteEntry(&entry)
 }
 
+// SaveEntries записывает набор сокращенных ссылок
 func (repository *FileRepository) SaveEntries(ctx context.Context, userID int, shortIDMap URLMapping) error {
 	storageWriter, err := storage.NewFileStorageWriter(repository.fs, repository.storageFilepath)
 
@@ -119,14 +123,17 @@ func (repository *FileRepository) SaveEntries(ctx context.Context, userID int, s
 	return storageWriter.WriteEntries(entries)
 }
 
+// Close завершает работу с хранилищем
 func (repository *FileRepository) Close() error {
 	return nil
 }
 
+// Ping не поддерживается FileRepository
 func (repository *FileRepository) Ping(ctx context.Context) error {
 	return ErrPingNotSupported
 }
 
+// GetShortID возвращает shortID сокращенной ссылки
 func (repository *FileRepository) GetShortID(ctx context.Context, fullURL string) (shortID string, err error) {
 	repository.shortURLMap.Range(func(id, url any) bool {
 		if url.(string) == fullURL {
@@ -139,14 +146,17 @@ func (repository *FileRepository) GetShortID(ctx context.Context, fullURL string
 	return
 }
 
+// GetUserEntries возвращает сокращенный пользователем ссылки по userID
 func (repository *FileRepository) GetUserEntries(ctx context.Context, userID int) (shortIDMap URLMapping, err error) {
 	return nil, ErrNotImplemented
 }
 
+// GetNewUserID возвращает ID нового пользователя
 func (repository *FileRepository) GetNewUserID(ctx context.Context) (userID int, err error) {
 	return -1, nil
 }
 
+// DeleteUserURLs удаляет набор сокращенных ссылок
 func (repository *FileRepository) DeleteUserURLs(ctx context.Context, deleteRequests []models.UserDeleteRequest) error {
 	return nil
 }

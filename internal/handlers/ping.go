@@ -3,10 +3,12 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/rovany706/url-shortener/internal/repository"
 	"go.uber.org/zap"
+
+	"github.com/rovany706/url-shortener/internal/repository"
 )
 
+// PingHandler хэндлер для проверки подключения к БД
 func PingHandler(repository repository.Repository, logger *zap.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := repository.Ping(r.Context())

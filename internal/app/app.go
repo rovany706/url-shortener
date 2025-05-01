@@ -12,17 +12,19 @@ import (
 
 const shortHashByteCount = 4
 
+// URLShortener интерфейс сокращателя ссылок
 type URLShortener interface {
 	GetFullURL(ctx context.Context, shortID string) (shortenedURLInfo *repository.ShortenedURLInfo, ok bool)
 	GetShortID(ctx context.Context, userID int, fullURL string) (shortID string, err error)
 	GetShortIDBatch(ctx context.Context, userID int, fullURLs []string) (shortIDs []string, err error)
 }
 
+// URLShortenerApp реализует интерфейс URLShortener
 type URLShortenerApp struct {
 	repository repository.Repository
 }
 
-// Создает экземпляр URLShortenerApp
+// NewURLShortenerApp создает экземпляр URLShortenerApp
 func NewURLShortenerApp(repository repository.Repository) *URLShortenerApp {
 	app := URLShortenerApp{
 		repository: repository,
@@ -31,12 +33,12 @@ func NewURLShortenerApp(repository repository.Repository) *URLShortenerApp {
 	return &app
 }
 
-// Метод GetFullURL возвращает полную ссылку по короткому id и флаг успеха операции.
+// GetFullURL возвращает полную ссылку по короткому id и флаг успеха операции.
 func (app *URLShortenerApp) GetFullURL(ctx context.Context, shortID string) (shortenedURLInfo *repository.ShortenedURLInfo, ok bool) {
 	return app.repository.GetFullURL(ctx, shortID)
 }
 
-// Метод GetShortID возвращает первые 4 байта sha1-хеша ссылки в виде строки.
+// GetShortID возвращает первые 4 байта sha1-хеша ссылки в виде строки.
 func (app *URLShortenerApp) GetShortID(ctx context.Context, userID int, fullURL string) (shortID string, err error) {
 	if _, err = url.ParseRequestURI(fullURL); err != nil {
 		return "", err
@@ -62,7 +64,7 @@ func (app *URLShortenerApp) GetShortID(ctx context.Context, userID int, fullURL 
 	return shortID, nil
 }
 
-// Метод GetShortIDBatch возвращает короткие ID слайса ссылок.
+// GetShortIDBatch возвращает короткие ID слайса ссылок.
 func (app *URLShortenerApp) GetShortIDBatch(ctx context.Context, userID int, fullURLs []string) (shortIDs []string, err error) {
 	shortIDs = make([]string, len(fullURLs))
 	for i, fullURL := range fullURLs {

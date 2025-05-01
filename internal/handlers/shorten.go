@@ -7,14 +7,16 @@ import (
 	"io"
 	"net/http"
 
+	"go.uber.org/zap"
+
 	"github.com/rovany706/url-shortener/internal/app"
 	"github.com/rovany706/url-shortener/internal/auth"
 	"github.com/rovany706/url-shortener/internal/config"
 	"github.com/rovany706/url-shortener/internal/models"
 	"github.com/rovany706/url-shortener/internal/repository"
-	"go.uber.org/zap"
 )
 
+// ShortenURLHandlers обработчики методов сокращения
 type ShortenURLHandlers struct {
 	app          app.URLShortener
 	tokenManager auth.TokenManager
@@ -23,6 +25,7 @@ type ShortenURLHandlers struct {
 	logger       *zap.Logger
 }
 
+// NewShortenURLHandlers создает ShortenURLHandlers
 func NewShortenURLHandlers(app app.URLShortener, tokenManager auth.TokenManager, repository repository.Repository, appConfig *config.AppConfig, logger *zap.Logger) ShortenURLHandlers {
 	return ShortenURLHandlers{
 		app:          app,
@@ -33,6 +36,7 @@ func NewShortenURLHandlers(app app.URLShortener, tokenManager auth.TokenManager,
 	}
 }
 
+// MakeShortURLHandler хэндлер создания сокращенной ссылки
 func (h *ShortenURLHandlers) MakeShortURLHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID, err := getUserIDFromRequest(r.Context(), h.tokenManager, h.repository, r)
@@ -72,6 +76,7 @@ func (h *ShortenURLHandlers) MakeShortURLHandler() http.HandlerFunc {
 	}
 }
 
+// MakeShortURLHandlerJSON принимает запросы на сокращение ссылки в виде JSON
 func (h *ShortenURLHandlers) MakeShortURLHandlerJSON() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID, err := getUserIDFromRequest(r.Context(), h.tokenManager, h.repository, r)
@@ -122,6 +127,7 @@ func (h *ShortenURLHandlers) MakeShortURLHandlerJSON() http.HandlerFunc {
 	}
 }
 
+// MakeShortURLBatchHandler принимает запросы на сокращение нескольких ссылок в виде JSON
 func (h *ShortenURLHandlers) MakeShortURLBatchHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID, err := getUserIDFromRequest(r.Context(), h.tokenManager, h.repository, r)

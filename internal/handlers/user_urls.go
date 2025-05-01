@@ -4,14 +4,16 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"go.uber.org/zap"
+
 	"github.com/rovany706/url-shortener/internal/auth"
 	"github.com/rovany706/url-shortener/internal/config"
 	"github.com/rovany706/url-shortener/internal/models"
 	"github.com/rovany706/url-shortener/internal/repository"
 	"github.com/rovany706/url-shortener/internal/service"
-	"go.uber.org/zap"
 )
 
+// UserHandlers обработчики пользовательских методов
 type UserHandlers struct {
 	appConfig     *config.AppConfig
 	logger        *zap.Logger
@@ -20,6 +22,7 @@ type UserHandlers struct {
 	deleteService service.DeleteService
 }
 
+// NewUserHandlers создает UserHandlers
 func NewUserHandlers(deleteService service.DeleteService, tokenManager auth.TokenManager, repository repository.Repository, appConfig *config.AppConfig, logger *zap.Logger) UserHandlers {
 	return UserHandlers{
 		appConfig:     appConfig,
@@ -30,6 +33,7 @@ func NewUserHandlers(deleteService service.DeleteService, tokenManager auth.Toke
 	}
 }
 
+// GetUserURLsHandler возвращает пользователю список сокращенных им ссылок
 func (h *UserHandlers) GetUserURLsHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID, err := getUserIDFromRequest(r.Context(), h.tokenManager, h.repository, r)
@@ -90,6 +94,7 @@ func (h *UserHandlers) GetUserURLsHandler() http.HandlerFunc {
 	}
 }
 
+// DeleteUserURLsHandler принимает запросы на удаление сокращенных ссылкок
 func (h *UserHandlers) DeleteUserURLsHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID, err := getUserIDFromRequest(r.Context(), h.tokenManager, h.repository, r)

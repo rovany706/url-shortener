@@ -18,6 +18,7 @@ type (
 	}
 )
 
+// Write записывает данные в ответ
 func (r *loggingResponseWriter) Write(b []byte) (int, error) {
 	size, err := r.ResponseWriter.Write(b)
 	r.responseData.size += size
@@ -25,11 +26,13 @@ func (r *loggingResponseWriter) Write(b []byte) (int, error) {
 	return size, err
 }
 
+// WriteHeader отправляет HTTP-код
 func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 	r.ResponseWriter.WriteHeader(statusCode)
 	r.responseData.status = statusCode
 }
 
+// ResponseLogger middleware логгирующий ответы
 func ResponseLogger(logger *zap.Logger) func(h http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		logFn := func(w http.ResponseWriter, r *http.Request) {

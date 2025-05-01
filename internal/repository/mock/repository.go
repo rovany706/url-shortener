@@ -13,9 +13,10 @@ import (
 	context "context"
 	reflect "reflect"
 
+	gomock "go.uber.org/mock/gomock"
+
 	models "github.com/rovany706/url-shortener/internal/models"
 	repository "github.com/rovany706/url-shortener/internal/repository"
-	gomock "go.uber.org/mock/gomock"
 )
 
 // MockRepository is a mock of Repository interface.

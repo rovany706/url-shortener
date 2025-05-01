@@ -11,21 +11,22 @@ import (
 
 const (
 	deleteFlushTimePeriod = time.Second * 10
-	fanInChanCapacity     = 10
-	timeout               = time.Second * 10
 )
 
+// DeleteService интерфейс сервиса удаления записей
 type DeleteService interface {
 	Put(deleteChan chan models.UserDeleteRequest)
 	StartWorker(context.Context)
 }
 
+// DeleteServiceImpl сервис удаления записей
 type DeleteServiceImpl struct {
 	flushTicker  *time.Ticker
 	deleteBuffer *DeleteRequestBuffer
 	repo         repository.Repository
 }
 
+// NewDeleteService создает DeleteServiceImpl
 func NewDeleteService(repo repository.Repository) *DeleteServiceImpl {
 	return &DeleteServiceImpl{
 		deleteBuffer: NewDeleteBuffer(),
@@ -33,10 +34,12 @@ func NewDeleteService(repo repository.Repository) *DeleteServiceImpl {
 	}
 }
 
+// Put добавляет запрос на удаление в буфер
 func (ds *DeleteServiceImpl) Put(deleteChan chan models.UserDeleteRequest) {
 	ds.deleteBuffer.Add(deleteChan)
 }
 
+// StartWorker запускает сервис в отдельной горутине
 func (ds *DeleteServiceImpl) StartWorker(ctx context.Context) {
 	ds.flushTicker = time.NewTicker(deleteFlushTimePeriod)
 

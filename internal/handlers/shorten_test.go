@@ -7,8 +7,9 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/rovany706/url-shortener/internal/app"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/rovany706/url-shortener/internal/app"
 )
 
 func TestRedirectHandler(t *testing.T) {

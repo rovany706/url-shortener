@@ -7,14 +7,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rovany706/url-shortener/internal/app"
-	"github.com/rovany706/url-shortener/internal/auth"
-	"github.com/rovany706/url-shortener/internal/config"
-	"github.com/rovany706/url-shortener/internal/repository/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 	"go.uber.org/zap/zaptest"
+
+	"github.com/rovany706/url-shortener/internal/app"
+	"github.com/rovany706/url-shortener/internal/auth"
+	"github.com/rovany706/url-shortener/internal/config"
+	"github.com/rovany706/url-shortener/internal/repository/mock"
 )
 
 func TestMakeShortURLHandler(t *testing.T) {

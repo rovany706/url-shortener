@@ -9,12 +9,15 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
+// Имена таблиц
 const (
+	// ShortLinksTableName имя таблицы сокращенных ссылок
 	ShortLinksTableName = "short_links"
-	UsersTableName      = "users"
+	// ShortLinksTableName имя таблицы пользователей
+	UsersTableName = "users"
 )
 
-var CreateTablesSQL = fmt.Sprintf(
+var сreateTablesSQL = fmt.Sprintf(
 	`DROP TABLE IF EXISTS %[2]s;
 	DROP TABLE IF EXISTS %[1]s;
 
@@ -31,10 +34,12 @@ var CreateTablesSQL = fmt.Sprintf(
 	);`,
 	UsersTableName, ShortLinksTableName)
 
+// Database хранит подключение к БД
 type Database struct {
 	DBConnection *sql.DB
 }
 
+// InitConnection инициализирует подключение к БД
 func InitConnection(ctx context.Context, connString string) (*Database, error) {
 	dbConnection, err := sql.Open("pgx", connString)
 	if err != nil {
@@ -47,6 +52,7 @@ func InitConnection(ctx context.Context, connString string) (*Database, error) {
 	return &db, nil
 }
 
+// EnsureCreated создает необходимые для работы таблицы
 func (db *Database) EnsureCreated(ctx context.Context) error {
 	result := true
 
@@ -62,7 +68,7 @@ func (db *Database) EnsureCreated(ctx context.Context) error {
 		return nil
 	}
 
-	_, err := db.DBConnection.ExecContext(ctx, CreateTablesSQL)
+	_, err := db.DBConnection.ExecContext(ctx, сreateTablesSQL)
 
 	return err
 }

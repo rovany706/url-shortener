@@ -12,8 +12,9 @@ package mock
 import (
 	reflect "reflect"
 
-	auth "github.com/rovany706/url-shortener/internal/auth"
 	gomock "go.uber.org/mock/gomock"
+
+	auth "github.com/rovany706/url-shortener/internal/auth"
 )
 
 // MockTokenManager is a mock of TokenManager interface.

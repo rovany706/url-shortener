@@ -24,10 +24,12 @@ func newCompressReader(r io.ReadCloser) (*compressReader, error) {
 	}, nil
 }
 
+// Read читает поток данных
 func (c compressReader) Read(p []byte) (n int, err error) {
 	return c.zr.Read(p)
 }
 
+// Close закрывает ридер
 func (c *compressReader) Close() error {
 	if err := c.r.Close(); err != nil {
 		return err
@@ -36,6 +38,7 @@ func (c *compressReader) Close() error {
 	return c.zr.Close()
 }
 
+// RequestGzipCompress middleware для разжатия запросов с помощью gzip
 func RequestGzipCompress() func(h http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
