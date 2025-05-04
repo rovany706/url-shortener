@@ -9,9 +9,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
 )
 
 func TestRequestGzipCompress(t *testing.T) {
+	testLogger := zaptest.NewLogger(t)
 	requestBody := `{"url": "http://example.com"}`
 	responseBody := `{"result":"http://localhost:8080/0"}`
 
@@ -28,17 +30,21 @@ func TestRequestGzipCompress(t *testing.T) {
 	request.Header.Set("Accept-Encoding", "")
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(responseBody))
+		_, err = w.Write([]byte(responseBody))
+		require.NoError(t, err)
+
 		w.WriteHeader(http.StatusOK)
 	})
 
-	middlewareHandler := RequestGzipCompress()(handler)
+	middlewareHandler := RequestGzipCompress(testLogger)(handler)
 
 	recorder := httptest.NewRecorder()
 	middlewareHandler.ServeHTTP(recorder, request)
 
 	resp := recorder.Result()
-	defer resp.Body.Close()
+	defer func() {
+		require.NoError(t, resp.Body.Close())
+	}()
 
 	b, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)

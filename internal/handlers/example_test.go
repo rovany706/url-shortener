@@ -46,7 +46,7 @@ func ExamplePingHandler() {
 		log.Fatal(err)
 	}
 
-	resp.Body.Close()
+	err = resp.Body.Close()
 }
 
 func ExampleRedirectHandlers_RedirectHandler() {
@@ -63,7 +63,7 @@ func ExampleRedirectHandlers_RedirectHandler() {
 		log.Fatal(err)
 	}
 
-	resp.Body.Close()
+	err = resp.Body.Close()
 }
 
 func ExampleShortenURLHandlers_MakeShortURLHandler() {
@@ -86,7 +86,7 @@ func ExampleShortenURLHandlers_MakeShortURLHandler() {
 		log.Fatal(err)
 	}
 
-	resp.Body.Close()
+	err = resp.Body.Close()
 }
 
 func ExampleShortenURLHandlers_MakeShortURLHandlerJSON() {
@@ -109,7 +109,7 @@ func ExampleShortenURLHandlers_MakeShortURLHandlerJSON() {
 		log.Fatal(err)
 	}
 
-	resp.Body.Close()
+	err = resp.Body.Close()
 }
 
 func ExampleShortenURLHandlers_MakeShortURLBatchHandler() {
@@ -147,7 +147,7 @@ func ExampleShortenURLHandlers_MakeShortURLBatchHandler() {
 		log.Fatal(err)
 	}
 
-	resp.Body.Close()
+	err = resp.Body.Close()
 }
 
 func ExampleUserHandlers_GetUserURLsHandler() {
@@ -183,7 +183,7 @@ func ExampleUserHandlers_GetUserURLsHandler() {
 		log.Fatal(err)
 	}
 
-	resp.Body.Close()
+	err = resp.Body.Close()
 }
 
 func ExampleUserHandlers_DeleteUserURLsHandler() {
@@ -225,5 +225,5 @@ func ExampleUserHandlers_DeleteUserURLsHandler() {
 		log.Fatal(err)
 	}
 
-	resp.Body.Close()
+	err = resp.Body.Close()
 }

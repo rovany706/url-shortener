@@ -54,7 +54,8 @@ func TestGetFullURL(t *testing.T) {
 	ctx := context.Background()
 	testStoragePath := "/home/test/storage.json"
 	fs := afero.NewMemMapFs()
-	fs.MkdirAll("/home/test", 0755)
+	err := fs.MkdirAll("/home/test", 0755)
+	require.NoError(t, err)
 	loadTestData(t, fs, "testdata/test_storage.json", testStoragePath)
 
 	for _, tt := range tests {
@@ -102,7 +103,8 @@ func TestSaveEntry(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fs := afero.NewMemMapFs()
-			fs.MkdirAll("/home/test", 0755)
+			err := fs.MkdirAll("/home/test", 0755)
+			require.NoError(t, err)
 			testStoragePath := "/home/test/storage.json"
 			loadTestData(t, fs, "testdata/test_storage.json", testStoragePath)
 			fi, err := fs.Stat(testStoragePath)
@@ -158,7 +160,8 @@ func TestSaveEntries(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fs := afero.NewMemMapFs()
-			fs.MkdirAll("/home/test", 0755)
+			err := fs.MkdirAll("/home/test", 0755)
+			require.NoError(t, err)
 			testStoragePath := "/home/test/storage.json"
 			loadTestData(t, fs, "testdata/test_storage.json", testStoragePath)
 			fi, err := fs.Stat(testStoragePath)
@@ -188,7 +191,8 @@ func TestSaveEntries(t *testing.T) {
 func TestPing(t *testing.T) {
 	ctx := context.Background()
 	fs := afero.NewMemMapFs()
-	fs.MkdirAll("/home/test", 0755)
+	err := fs.MkdirAll("/home/test", 0755)
+	require.NoError(t, err)
 	testStoragePath := "/home/test/storage.json"
 	loadTestData(t, fs, "testdata/test_storage.json", testStoragePath)
 
@@ -201,7 +205,8 @@ func TestPing(t *testing.T) {
 
 func TestClose(t *testing.T) {
 	fs := afero.NewMemMapFs()
-	fs.MkdirAll("/home/test", 0755)
+	err := fs.MkdirAll("/home/test", 0755)
+	require.NoError(t, err)
 	testStoragePath := "/home/test/storage.json"
 	loadTestData(t, fs, "testdata/test_storage.json", testStoragePath)
 
@@ -235,7 +240,8 @@ func TestGetShortID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fs := afero.NewMemMapFs()
-			fs.MkdirAll("/home/test", 0755)
+			err := fs.MkdirAll("/home/test", 0755)
+			require.NoError(t, err)
 			testStoragePath := "/home/test/storage.json"
 			loadTestData(t, fs, "testdata/test_storage.json", testStoragePath)
 

@@ -79,7 +79,9 @@ func TestMakeShortURLHandler(t *testing.T) {
 			shortenHandlers.MakeShortURLHandler()(w, request)
 			response := w.Result()
 
-			defer response.Body.Close()
+			defer func() {
+				require.NoError(t, response.Body.Close())
+			}()
 			responseBody, err := io.ReadAll(response.Body)
 			require.NoError(t, err)
 
@@ -180,7 +182,9 @@ func TestMakeShortURLHandlerJSON(t *testing.T) {
 			shortenHandlers.MakeShortURLHandlerJSON()(w, request)
 			response := w.Result()
 
-			defer response.Body.Close()
+			defer func() {
+				require.NoError(t, response.Body.Close())
+			}()
 			responseBody, err := io.ReadAll(response.Body)
 			require.NoError(t, err)
 

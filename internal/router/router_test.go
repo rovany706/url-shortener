@@ -177,7 +177,10 @@ func TestMainRouter(t *testing.T) {
 			defer ts.Close()
 
 			response, _ := testRequest(t, ts, tt.method, tt.request, tt.body)
-			defer response.Body.Close()
+			defer func() {
+				err := response.Body.Close()
+				require.NoError(t, err)
+			}()
 
 			assert.Equal(t, tt.expectedCode, response.StatusCode)
 			assert.NotEmpty(t, logs.AllUntimed())

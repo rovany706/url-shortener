@@ -94,6 +94,6 @@ func (server *Server) RunServer() error {
 }
 
 // StopServer завершает работу сервера
-func (server *Server) StopServer() {
-	server.repository.Close()
+func (server *Server) StopServer() error {
+	return server.repository.Close()
 }

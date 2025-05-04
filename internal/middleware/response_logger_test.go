@@ -47,7 +47,9 @@ func TestResponseLogger(t *testing.T) {
 			request := httptest.NewRequest(http.MethodGet, "/", nil)
 
 			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.Write([]byte(tt.body))
+				_, err := w.Write([]byte(tt.body))
+				require.NoError(t, err)
+
 				w.WriteHeader(tt.status)
 			})
 

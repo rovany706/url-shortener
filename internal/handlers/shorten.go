@@ -65,14 +65,19 @@ func (h *ShortenURLHandlers) MakeShortURLHandler() http.HandlerFunc {
 			}
 		}
 
-		if err := auth.SetAuthCookie(h.tokenManager, w, userID, h.logger); err != nil {
+		err = auth.SetAuthCookie(h.tokenManager, w, userID, h.logger)
+		if err != nil {
 			http.Error(w, "", http.StatusBadRequest)
 			return
 		}
 
 		w.Header().Add("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(statusCode)
-		w.Write([]byte(getShortURL(shortID, h.appConfig)))
+		_, err = w.Write([]byte(getShortURL(shortID, h.appConfig)))
+		if err != nil {
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
 	}
 }
 
@@ -87,9 +92,11 @@ func (h *ShortenURLHandlers) MakeShortURLHandlerJSON() http.HandlerFunc {
 		}
 
 		decoder := json.NewDecoder(r.Body)
-		var request models.ShortenRequest
 
-		if err := decoder.Decode(&request); err != nil {
+		var request models.ShortenRequest
+		err = decoder.Decode(&request)
+
+		if err != nil {
 			h.logger.Info("cannot decode request JSON body", zap.Error(err))
 			http.Error(w, "", http.StatusBadRequest)
 			return
@@ -138,9 +145,11 @@ func (h *ShortenURLHandlers) MakeShortURLBatchHandler() http.HandlerFunc {
 		}
 
 		decoder := json.NewDecoder(r.Body)
-		var request models.BatchShortenRequest
 
-		if err := decoder.Decode(&request); err != nil {
+		var request models.BatchShortenRequest
+		err = decoder.Decode(&request)
+
+		if err != nil {
 			h.logger.Info("cannot decode request JSON body", zap.Error(err))
 			http.Error(w, "", http.StatusBadRequest)
 			return
