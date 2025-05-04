@@ -5,6 +5,8 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
+	"go.uber.org/zap"
 )
 
 type compressReader struct {
@@ -39,7 +41,7 @@ func (c *compressReader) Close() error {
 }
 
 // RequestGzipCompress middleware для разжатия запросов с помощью gzip
-func RequestGzipCompress() func(h http.Handler) http.Handler {
+func RequestGzipCompress(logger *zap.Logger) func(h http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			contentEncoding := r.Header.Get("Content-Encoding")
@@ -52,7 +54,13 @@ func RequestGzipCompress() func(h http.Handler) http.Handler {
 				}
 
 				r.Body = compressReader
-				defer compressReader.Close()
+				defer func() {
+					dErr := compressReader.Close()
+					if dErr != nil {
+						logger.Error("error closing gzip reader", zap.Error(dErr))
+						w.WriteHeader(http.StatusInternalServerError)
+					}
+				}()
 			}
 
 			h.ServeHTTP(w, r)

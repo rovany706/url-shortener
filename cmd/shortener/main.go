@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"os"
 
 	"go.uber.org/zap"
@@ -36,8 +37,13 @@ func main() {
 	}
 }
 
-func run(server *server.Server) error {
-	defer server.StopServer()
+func run(server *server.Server) (err error) {
+	err = server.RunServer()
 
-	return server.RunServer()
+	defer func() {
+		dErr := server.StopServer()
+		err = errors.Join(err, dErr)
+	}()
+
+	return err
 }

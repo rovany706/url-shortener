@@ -45,7 +45,7 @@ type DatabaseRepository struct {
 }
 
 // NewDatabaseRepository инициирует подключение к БД
-func NewDatabaseRepository(ctx context.Context, connString string) (Repository, error) {
+func NewDatabaseRepository(ctx context.Context, connString string) (*DatabaseRepository, error) {
 	db, err := database.InitConnection(ctx, connString)
 
 	if err != nil {
@@ -80,7 +80,11 @@ func (repository *DatabaseRepository) SaveEntry(ctx context.Context, userID int,
 	if err != nil {
 		return err
 	}
-	defer stmt.Close()
+
+	defer func() {
+		dErr := stmt.Close()
+		err = errors.Join(err, dErr)
+	}()
 
 	_, err = stmt.ExecContext(ctx, shortID, fullURL, userID)
 	if err != nil {
@@ -99,7 +103,11 @@ func (repository *DatabaseRepository) GetShortID(ctx context.Context, fullURL st
 	if err != nil {
 		return "", err
 	}
-	defer stmt.Close()
+
+	defer func() {
+		dErr := stmt.Close()
+		err = errors.Join(err, dErr)
+	}()
 
 	row := stmt.QueryRowContext(ctx, fullURL)
 	err = row.Scan(&shortID)
@@ -117,7 +125,11 @@ func (repository *DatabaseRepository) GetUserEntries(ctx context.Context, userID
 	if err != nil {
 		return nil, err
 	}
-	defer stmt.Close()
+
+	defer func() {
+		dErr := stmt.Close()
+		err = errors.Join(err, dErr)
+	}()
 
 	rows, err := stmt.QueryContext(ctx, userID)
 
@@ -125,7 +137,10 @@ func (repository *DatabaseRepository) GetUserEntries(ctx context.Context, userID
 		return nil, err
 	}
 
-	defer rows.Close()
+	defer func() {
+		dErr := rows.Close()
+		err = errors.Join(err, dErr)
+	}()
 
 	shortIDMap = make(URLMapping, 0)
 	for rows.Next() {
@@ -167,13 +182,20 @@ func (repository *DatabaseRepository) SaveEntries(ctx context.Context, userID in
 		return err
 	}
 
-	defer tx.Rollback()
+	defer func() {
+		dErr := tx.Rollback()
+		err = errors.Join(err, dErr)
+	}()
 
 	stmt, err := tx.PrepareContext(ctx, insertEntrySQLBatch)
 	if err != nil {
 		return err
 	}
-	defer stmt.Close()
+
+	defer func() {
+		dErr := stmt.Close()
+		err = errors.Join(err, dErr)
+	}()
 
 	for shortID, fullURL := range shortIDMap {
 		_, err := stmt.ExecContext(ctx, shortID, fullURL, userID)
@@ -206,13 +228,20 @@ func (repository *DatabaseRepository) DeleteUserURLs(ctx context.Context, delete
 		return err
 	}
 
-	defer tx.Rollback()
+	defer func() {
+		dErr := tx.Rollback()
+		err = errors.Join(err, dErr)
+	}()
 
 	stmt, err := tx.PrepareContext(ctx, deleteShortLinkSQL)
 	if err != nil {
 		return err
 	}
-	defer stmt.Close()
+
+	defer func() {
+		dErr := stmt.Close()
+		err = errors.Join(err, dErr)
+	}()
 
 	for _, request := range deleteRequests {
 		_, err = stmt.ExecContext(ctx, request.ShortIDToDelete, request.UserID)

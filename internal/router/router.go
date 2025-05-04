@@ -16,13 +16,13 @@ func GetRouter(
 	redirectHandlers handlers.RedirectHandlers,
 	repository repository.Repository,
 	logger *zap.Logger,
-) chi.Router {
+) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(middleware.ResponseLogger(logger))
 	r.Use(middleware.RequestLogger(logger))
-	r.Use(middleware.RequestGzipCompress())
-	r.Use(middleware.ResponseGzipCompress())
+	r.Use(middleware.RequestGzipCompress(logger))
+	r.Use(middleware.ResponseGzipCompress(logger))
 
 	r.Get("/ping", handlers.PingHandler(repository, logger))
 

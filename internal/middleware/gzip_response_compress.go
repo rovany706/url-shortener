@@ -4,6 +4,8 @@ import (
 	"compress/gzip"
 	"net/http"
 	"strings"
+
+	"go.uber.org/zap"
 )
 
 type compressWriter struct {
@@ -40,7 +42,7 @@ func (c *compressWriter) Close() error {
 }
 
 // ResponseGzipCompress middleware для сжатия ответа
-func ResponseGzipCompress() func(h http.Handler) http.Handler {
+func ResponseGzipCompress(logger *zap.Logger) func(h http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			responseWriter := w
@@ -51,7 +53,14 @@ func ResponseGzipCompress() func(h http.Handler) http.Handler {
 			if supportsGzip {
 				compressWriter := newCompressWriter(w)
 				responseWriter = compressWriter
-				defer compressWriter.Close()
+
+				defer func() {
+					dErr := compressWriter.Close()
+					if dErr != nil {
+						logger.Error("error closing gzip writer", zap.Error(dErr))
+						w.WriteHeader(http.StatusInternalServerError)
+					}
+				}()
 			}
 
 			h.ServeHTTP(responseWriter, r)
