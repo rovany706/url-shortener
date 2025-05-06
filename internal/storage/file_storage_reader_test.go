@@ -36,7 +36,8 @@ func TestReadEntry(t *testing.T) {
 
 	fs := afero.NewMemMapFs()
 	testStoragePath := "home/test/storage.json"
-	fs.MkdirAll("/home/test", 0755)
+	err := fs.MkdirAll("/home/test", 0755)
+	require.NoError(t, err)
 	loadTestData(t, fs, "testdata/test_storage.json", testStoragePath)
 
 	reader, err := NewFileStorageReader(fs, testStoragePath)
@@ -62,7 +63,8 @@ func TestReadAllEntries(t *testing.T) {
 
 	fs := afero.NewMemMapFs()
 	testStoragePath := "home/test/storage.json"
-	fs.MkdirAll("/home/test", 0755)
+	err := fs.MkdirAll("/home/test", 0755)
+	require.NoError(t, err)
 	loadTestData(t, fs, "testdata/test_storage.json", testStoragePath)
 
 	reader, err := NewFileStorageReader(fs, testStoragePath)

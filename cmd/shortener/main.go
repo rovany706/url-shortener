@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"os"
 
 	"go.uber.org/zap"
@@ -10,9 +12,17 @@ import (
 	"github.com/rovany706/url-shortener/internal/server"
 )
 
+var (
+	buildVersion string = "N/A"
+	buildDate    string = "N/A"
+	buildCommit  string = "N/A"
+)
+
 var appConfig *config.AppConfig
 
 func main() {
+	printBuildInfo()
+
 	var err error
 	appConfig, err = config.ParseArgs(os.Args[0], os.Args[1:])
 
@@ -36,8 +46,23 @@ func main() {
 	}
 }
 
-func run(server *server.Server) error {
-	defer server.StopServer()
+func run(server *server.Server) (err error) {
+	err = server.RunServer()
 
-	return server.RunServer()
+	defer func() {
+		dErr := server.StopServer()
+		err = errors.Join(err, dErr)
+	}()
+
+	return err
+}
+
+func printBuildInfo() {
+	buildInfoMessageFmt := "Build version: %s\nBuild date: %s\nBuild commit: %s\n"
+	fmt.Printf(
+		buildInfoMessageFmt,
+		buildVersion,
+		buildDate,
+		buildCommit,
+	)
 }

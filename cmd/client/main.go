@@ -41,7 +41,12 @@ func main() {
 	}
 
 	fmt.Println("Status code:", response.Status)
-	defer response.Body.Close()
+	defer func() {
+		dErr := response.Body.Close()
+		if dErr != nil {
+			panic(dErr)
+		}
+	}()
 
 	body, err := io.ReadAll(response.Body)
 

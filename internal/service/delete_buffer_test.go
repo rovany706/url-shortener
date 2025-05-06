@@ -12,16 +12,16 @@ func BenchmarkDeleteBuffer(b *testing.B) {
 	count := 10_000
 	b.Run("Add", func(b *testing.B) {
 		dBuf := NewDeleteBuffer()
-		for i := 0; i < b.N; i++ {
-			for i := 0; i < count; i++ {
+		for b.Loop() {
+			for range count {
 				dBuf.Add(make(chan models.UserDeleteRequest))
 			}
 		}
 	})
 	b.Run("AddAndFlush", func(b *testing.B) {
 		dBuf := NewDeleteBuffer()
-		for i := 0; i < b.N; i++ {
-			for i := 0; i < count; i++ {
+		for b.Loop() {
+			for range count {
 				dBuf.Add(make(chan models.UserDeleteRequest))
 			}
 

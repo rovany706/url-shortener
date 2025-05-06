@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 	"go.uber.org/zap/zaptest"
 
@@ -46,7 +47,9 @@ func TestPingHandler(t *testing.T) {
 			PingHandler(repository, testLogger)(w, request)
 
 			response := w.Result()
-			defer response.Body.Close()
+			defer func() {
+				require.NoError(t, response.Body.Close())
+			}()
 
 			assert.Equal(t, tt.wantStatusCode, response.StatusCode)
 		})

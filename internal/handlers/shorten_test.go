@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/rovany706/url-shortener/internal/app"
 )
@@ -65,7 +66,9 @@ func TestRedirectHandler(t *testing.T) {
 			redirectHandlers.RedirectHandler()(w, request)
 
 			result := w.Result()
-			defer result.Body.Close()
+			defer func() {
+				require.NoError(t, result.Body.Close())
+			}()
 
 			assert.Equal(t, tt.want.code, result.StatusCode)
 			assert.Equal(t, tt.want.location, result.Header.Get("Location"))

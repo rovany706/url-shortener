@@ -128,8 +128,7 @@ func BenchmarkGetShortID(b *testing.B) {
 	repository.EXPECT().SaveEntry(gomock.Any(), gomock.Any(), gomock.Any(), fullURL).Return(nil).AnyTimes()
 	app := NewURLShortenerApp(repository)
 
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		app.GetShortID(ctx, 1, fullURL)
 	}
 }

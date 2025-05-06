@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"sync"
 
 	"github.com/spf13/afero"
@@ -25,7 +26,10 @@ func NewFileRepository(fs afero.Fs, storageFilepath string) (*FileRepository, er
 		return nil, err
 	}
 
-	defer fileStorageReader.Close()
+	defer func() {
+		dErr := fileStorageReader.Close()
+		err = errors.Join(err, dErr)
+	}()
 
 	storage, err := fileStorageReader.ReadAllEntries()
 
@@ -86,7 +90,10 @@ func (repository *FileRepository) saveNewEntry(shortID string, fullURL string) e
 		return err
 	}
 
-	defer storageWriter.Close()
+	defer func() {
+		dErr := storageWriter.Close()
+		err = errors.Join(err, dErr)
+	}()
 
 	entry := storage.StorageEntry{
 		ShortID: shortID,
@@ -104,7 +111,10 @@ func (repository *FileRepository) SaveEntries(ctx context.Context, userID int, s
 		return err
 	}
 
-	defer storageWriter.Close()
+	defer func() {
+		dErr := storageWriter.Close()
+		err = errors.Join(err, dErr)
+	}()
 
 	entries := make([]storage.StorageEntry, 0)
 	for shortID, fullURL := range shortIDMap {
